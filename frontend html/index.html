@@ -1,0 +1,34 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Food Posting - Excess Food Platform</title>
+    <link rel="stylesheet" href="css/styles.css">
+</head>
+<body>
+    <header>
+        <h1>Post Excess Food</h1>
+    </header>
+
+    <section id="post-form">
+        <form id="foodPostForm">
+            <label for="food_type">Food Type:</label>
+            <input type="text" id="food_type" name="food_type" required>
+
+            <label for="quantity">Quantity:</label>
+            <input type="number" id="quantity" name="quantity" required>
+
+            <label for="pickup_time">Pickup Time:</label>
+            <input type="datetime-local" id="pickup_time" name="pickup_time" required>
+
+            <label for="contact_info">Contact Information:</label>
+            <input type="text" id="contact_info" name="contact_info" required>
+
+            <button type="submit">Post Food</button>
+        </form>
+    </section>
+
+    <script src="js/main.js"></script>
+</body>
+</html>

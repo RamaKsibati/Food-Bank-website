@@ -1,4 +1,5 @@
-document.getElementById('foodPostForm').addEventListener('submit', async (event) => {
+document.addEventListener('DOMContentLoaded', function() { 
+    document.getElementById('foodPostForm').addEventListener('submit', async (event) => {
     event.preventDefault();
 
     const foodType = document.getElementById('food_type').value;
@@ -8,7 +9,7 @@ document.getElementById('foodPostForm').addEventListener('submit', async (event)
 
     const postData = { food_type: foodType, quantity, pickup_time: pickupTime, contact_info: contactInfo };
 
-    const response = await fetch('http://localhost:3000/api/food-posts', {
+    const response = await fetch('http://localhost:3000/api/food_posts', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(postData)
@@ -20,13 +21,19 @@ document.getElementById('foodPostForm').addEventListener('submit', async (event)
     } else {
         alert('Error posting food.');
     }
+    console.log('Form submitted!');
+});
 });
 async function loadFoodPosts() {
-    const response = await fetch('http://localhost:3000/api/food-posts');
+    const response = await fetch('http://localhost:3000/api/food_posts');
     const foodPosts = await response.json();
 
     const feedSection = document.getElementById('food-feed');
-    feedSection.innerHTML = '';
+    if (feedSection) {
+        feedSection.innerHTML = '';
+    } else {
+        console.error("Element with id 'food-feed' not found.");
+    }
 
     foodPosts.forEach(post => {
         const postElement = document.createElement('div');
@@ -43,7 +50,7 @@ async function loadFoodPosts() {
 }
 
 async function reserveFood(postId) {
-    const response = await fetch(`http://localhost:3000/api/food-posts/${postId}/reserve`, {
+    const response = await fetch(`http://localhost:3000/api/food_posts/${postId}/reserve`, {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ user_name: "User", contact_info: "123-456-7890" })

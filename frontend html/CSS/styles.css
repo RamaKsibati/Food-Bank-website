@@ -1,153 +1,268 @@
-/* General Reset */
+/* General Styles*/
 * {
     margin: 0;
     padding: 0;
     box-sizing: border-box;
-    font-family: Arial, sans-serif;
+    font-family: 'Poppins', sans-serif; /* Use a clean, modern font */
 }
 
 body {
-    background-color: #f4f6f9;
-    color: #333;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    padding: 20px;
+    font-family: 'Poppins', sans-serif; /* Set consistent font */
+    color: #333; /* Set text color */
+    background-color: #b8c173;  /*Light background color */
+   
+}
+/* Navigation Bar */
+#navbar {
+    background-color: rgba(0, 0, 0, 0.7); /* Black with transparency */
+    position: fixed; /* Fixed at the top */
+    top: 0;
+    width: 100%; /* Full width */
+    z-index: 1000; /* Stay above all other elements */
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3); /* Add shadow */
+    padding: 10px 0; /* Add padding */
 }
 
-/* Header */
+.nav-links {
+    display: flex; /* Horizontal layout */
+    justify-content:right; /* Center links */
+    list-style: none; /* Remove bullets */
+    padding: 0;
+    margin: 0;
+}
+
+.nav-links li {
+    margin: 0 15px; /* Space between links */
+}
+
+.nav-links a {
+    color: white; /* White text */
+    text-decoration: none; /* Remove underline */
+    font-size: 1.2em; /* Slightly larger font */
+    font-weight: bold;
+    transition: color 0.3s; /* Smooth hover effect */
+}
+
+.nav-links a:hover {
+    color: #828a46; /* Green text on hover */
+}
+
+/* Add padding to the top of the body to prevent overlapping with fixed navbar */
+body {
+    padding-top: 5px; /* Ensure content starts below the navbar */
+}
+
+
+/* Header Section */
 header {
-    width: 100%;
-    text-align: center;
-    background-color: #4CAF50;
-    color: white;
-    padding: 20px 0;
-    margin-bottom: 30px;
-    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+    text-align: center; /* Center text */
+    background: #828a46; /* Green background for header */
+    color: white; /* White text for contrast */
+    padding: 40px; /* Space inside the header */
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1); /* Subtle shadow */
+    margin-bottom: 20px; /* Space below the header */
+    border-radius: 8px; /* Rounded corners */
 }
 
 header h1 {
-    font-size: 2em;
+    font-size: 2.5em; /* Large font for the main title */
+    margin-bottom: 10px; /* Space below the title */
 }
 
-/* Form Container */
-#post-form, #food-feed {
-    width: 90%;
-    max-width: 600px;
-    margin-bottom: 20px;
-    background-color: white;
-    padding: 20px;
-    border-radius: 8px;
-    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+header p {
+    font-size: 1.1em; /* Slightly larger font for subtitle */
+    max-width: 600px; /* Limit width for better readability */
+    margin: auto; /* Center the paragraph */
+    color: #f1f1f1; /* Softer white for text */
 }
 
-/* Form Styling */
-form label {
-    font-weight: bold;
-    margin-top: 10px;
-    display: block;
-    color: #555;
+/* Search Section */
+#search-section {
+    display: flex; /* Arrange elements in a row */
+    justify-content: center; /* Center elements horizontally */
+    gap: 10px; /* Space between elements */
+    margin: 20px 0; /* Vertical spacing */
+    padding: 20px; /* Space inside the section */
 }
 
-form input[type="text"],
-form input[type="number"],
-form input[type="datetime-local"] {
-    width: 100%;
-    padding: 10px;
-    margin-top: 5px;
-    border: 1px solid #ddd;
-    border-radius: 4px;
-    outline: none;
+#search-input {
+    width: 300px; /* Width of the search bar */
+    padding: 12px; /* Padding inside the input field */
+    border: 1px solid #ddd; /* Light border */
+    border-radius: 8px; /* Rounded corners */
+    font-size: 1em; /* Consistent font size */
 }
 
-form input[type="text"]:focus,
-form input[type="number"]:focus,
-form input[type="datetime-local"]:focus {
-    border-color: #4CAF50;
+button {
+    background-color: #828a46; /* Green button background */
+    color: white; /* White text */
+    padding: 12px 20px; /* Space inside the button */
+    border: none; /* Remove border */
+    border-radius: 8px; /* Rounded corners */
+    font-size: 1em; /* Consistent font size */
+    cursor: pointer; /* Pointer cursor on hover */
+    transition: background-color 0.3s; /* Smooth hover effect */
 }
 
-form button {
-    width: 100%;
-    background-color: #4CAF50;
-    color: white;
-    padding: 10px;
-    border: none;
-    border-radius: 4px;
-    font-size: 1em;
-    cursor: pointer;
-    margin-top: 20px;
-    transition: background-color 0.3s;
+button:hover {
+    background-color: #9ba16e; /* Darker green on hover */
 }
 
-form button:hover {
-    background-color: #45a049;
+/* Introduction Section */
+#intro {
+    text-align: center; /* Center text */
+    padding: 25px; /* Space inside the section */
+    max-width: 800px; /* Limit width for better readability */
+    margin: auto; /* Center the content */
+    font-weight:  bold;
+    
 }
 
-/* Food Feed (Cards) */
-#food-feed {
-    display: flex;
-    flex-direction: column;
-    gap: 20px;
+#intro h2 {
+    color: #6c7338; /* Green for headings */
+    font-size: 2em; /* Larger font size */
+    margin-bottom: 10px; /* Space below heading */
+    font-weight:  bold;
 }
 
-.food-post {
-    background-color: white;
-    padding: 15px;
-    border-radius: 8px;
-    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
-    transition: box-shadow 0.3s;
+#intro p {
+    font-size: 1.1em; /* Consistent paragraph size */
+    color: #555; /* Softer gray for text */
+    font-weight:  bold;
 }
 
-.food-post:hover {
-    box-shadow: 0 6px 12px rgba(0, 0, 0, 0.2);
+/* Submission Form Section */
+/* Submission Form */
+#submission-form {
+    max-width: 600px; /* Limit the width of the form */
+    margin: 20px auto; /* Center the form on the page */
+    padding: 20px; /* Add padding inside the form */
+    background-color: rgb(226, 227, 226); /* White background for contrast */
+    border-radius: 8px; /* Rounded corners */
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1); /* Subtle shadow for a modern look */
+    text-align: left; /* Left-align the text */
 }
 
-.food-post h3 {
-    color: #333;
-    margin-bottom: 10px;
+#submission-form h2 {
+    text-align: center; /* Center the heading */
+    font-size: 1.8em; /* Slightly larger font size */
+    color: #828a46; /* Green heading */
+    margin-bottom: 15px; /* Space below the heading */
 }
 
-.food-post p {
-    margin: 8px 0;
-    color: #666;
+/* Style the form container */
+#foodPostForm {
+    display: flex; /* Use flexbox for layout */
+    flex-direction: column; /* Arrange items vertically */
+    gap: 15px; /* Add spacing between form elements */
 }
 
-.food-post button {
-    background-color: #4CAF50;
-    color: white;
-    border: none;
-    padding: 10px;
-    border-radius: 4px;
-    font-size: 0.9em;
-    cursor: pointer;
-    transition: background-color 0.3s;
-    margin-top: 10px;
+/* Labels */
+#foodPostForm label {
+    font-weight: bold; /* Make labels bold */
+    color: #333; /* Darker text for labels */
 }
 
-.food-post button:hover {
-    background-color: #45a049;
+/* Input Fields */
+#foodPostForm input[type="text"],
+#foodPostForm input[type="number"],
+#foodPostForm input[type="datetime-local"] {
+    width: 100%; /* Full width inputs */
+    padding: 10px; /* Padding inside input fields */
+    border: 1px solid #ddd; /* Light border */
+    border-radius: 6px; /* Rounded corners */
+    font-size: 1em; /* Consistent font size */
+    outline: none; /* Remove the default focus outline */
+    transition: border-color 0.3s, box-shadow 0.3s; /* Smooth focus effect */
 }
 
-/* Responsive Design */
-@media (max-width: 768px) {
-    header h1 {
-        font-size: 1.5em;
-    }
+/* Focus Effect for Inputs */
+#foodPostForm input:focus {
+    border-color: #828a46; /* Green border on focus */
+    box-shadow: 0 0 5px rgba(76, 175, 80, 0.3); /* Subtle green shadow */
+}
 
-    #post-form, #food-feed {
-        width: 100%;
-        padding: 15px;
-    }
+/* Submit Button */
+#foodPostForm button {
+    width: 100%; /* Full width button */
+    padding: 12px; /* Add padding inside the button */
+    background-color: #828a46; /* Green background for the button */
+    color: white; /* White text color */
+    font-size: 1.1em; /* Slightly larger font size */
+    font-weight: bold; /* Bold text */
+    border: none; /* Remove border */
+    border-radius: 6px; /* Rounded corners */
+    cursor: pointer; /* Pointer cursor on hover */
+    transition: background-color 0.3s, transform 0.2s; /* Smooth transitions */
+}
 
-    form button {
-        font-size: 0.9em;
-    }
+/* Hover Effect for Button */
+#foodPostForm button:hover {
+    background-color: #828a46; /* Darker green on hover */
+    transform: scale(1.02); /* Slightly enlarge on hover */
+}
 
-    .food-post {
-        padding: 15px;
-    }
 
-    .food-post button {
-        font-size: 0.85em;
-    }
+/* Featured Food Listings Section */
+#featured {
+    padding: 20px; /* Space inside the section */
+    text-align: center; /* Center text */
+}
+
+#featured h2 {
+    font-size: 2em; /* Larger font size */
+    color: #828a46; /* Green heading */
+    margin-bottom: 20px; /* Space below heading */
+}
+
+#food-listing {
+    display: flex; /* Flex layout for food items */
+    flex-wrap: wrap; /* Wrap items to the next line */
+    justify-content: center; /* Center items horizontally */
+    gap: 20px; /* Space between items */
+}
+
+.food-item {
+    background-color: white; /* White background */
+    border-radius: 8px; /* Rounded corners */
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1); /* Subtle shadow */
+    width: 250px; /* Fixed width */
+    padding: 15px; /* Space inside items */
+    text-align: center; /* Center text inside items */
+    transition: transform 0.2s; /* Smooth hover effect */
+}
+
+.food-item:hover {
+    transform: scale(1.02); /* Slightly larger on hover */
+}
+
+.food-item img {
+    width: 100%; /* Full width image */
+    height: 150px; /* Fixed height */
+    object-fit: cover; /* Crop images to fit */
+    border-radius: 8px; /* Rounded corners */
+    margin-bottom: 10px; /* Space below image */
+}
+
+.food-item h3 {
+    color: #333; /* Dark text */
+    font-size: 1.3em; /* Larger font size */
+    margin: 10px 0; /* Space above and below heading */
+}
+
+.food-item p {
+    color: #666; /* Softer gray for text */
+    font-size: 1em; /* Consistent font size */
+    margin: 8px 0; /* Space above and below paragraph */
+}
+
+/* Footer Section */
+footer {
+    text-align: center; /* Center text */
+    padding: 20px; /* Space inside footer */
+    background: #333; /* Dark background */
+    color: white; /* White text */
+    font-size: 1em; /* Consistent font size */
+    margin-top: 40px; /* Space above footer */
+    border-radius: 8px; /* Rounded corners */
 }

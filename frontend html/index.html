@@ -1,34 +1,104 @@
 <!DOCTYPE html>
 <html lang="en">
+    <!-- Navigation Bar -->
+  <nav id="navbar">
+    <ul class="nav-links">
+        <li><a href="feed.html">Available Food</a></li>
+        <li><a href="reservation.html">Reservation</a></li>
+    </ul>
+</nav>
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Food Posting - Excess Food Platform</title>
+    <title>Food Assistance Platform</title>
+    <!-- Link to CSS Styles -->
     <link rel="stylesheet" href="css/styles.css">
+    <!-- Google Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600&display=swap" rel="stylesheet">
 </head>
 <body>
-    <header>
-        <h1>Post Excess Food</h1>
-    </header>
+    
+<!-- Header Section -->
+<header>
+    <h1>Find Food Assistance Near You</h1>
+    <p>Connecting communities with food resources and donations to reduce hunger and food waste.</p>
+</header>
 
-    <section id="post-form">
-        <form id="foodPostForm">
-            <label for="food_type">Food Type:</label>
-            <input type="text" id="food_type" name="food_type" required>
 
-            <label for="quantity">Quantity:</label>
-            <input type="number" id="quantity" name="quantity" required>
+<!-- Search Section -->
+<section id="search-section">
+    <input 
+        type="text" 
+        id="search-input" 
+        placeholder="Search for food, locations, etc." 
+        aria-label="Search for food or locations">
+    <button onclick="performSearch()">Search</button>
+</section>
 
-            <label for="pickup_time">Pickup Time:</label>
-            <input type="datetime-local" id="pickup_time" name="pickup_time" required>
+<!-- Introduction Section -->
+<section id="intro">
+    <h2>How It Works</h2>
+    <p>
+        Our platform helps you find Fresh and cooked food in nearby restaurants or pantries.
+        Simply search for nearby resources, explore available food items, and find the help you need.
+        If you want to donate food please fill in the form below.
+    </p>
+</section>
 
-            <label for="contact_info">Contact Information:</label>
-            <input type="text" id="contact_info" name="contact_info" required>
+<!-- Food Submission Form Section -->
+<section id="submission-form">
+    <h2>Submit Food Availability</h2>
+    <form id="foodPostForm">
+        <label for="food_type">Food Type:</label>
+        <input 
+            type="text" 
+            id="food_type" 
+            name="food_type" 
+            placeholder="e.g., Fresh Produce, Canned Goods" 
+            required>
 
-            <button type="submit">Post Food</button>
-        </form>
-    </section>
+        <label for="quantity">Quantity:</label>
+        <input 
+            type="number" 
+            id="quantity" 
+            name="quantity" 
+            placeholder="e.g., 10 bags" 
+            required>
 
-    <script src="js/main.js"></script>
+        <label for="pickup_time">Pickup Time:</label>
+        <input 
+            type="datetime-local" 
+            id="pickup_time" 
+            name="pickup_time" 
+            required>
+
+        <label for="contact_info">Contact Information:</label>
+        <input 
+            type="text" 
+            id="contact_info" 
+            name="contact_info" 
+            placeholder="e.g., John Doe, (123) 456-7890" 
+            required>
+
+        <button type="submit">Submit Food</button>
+    </form>
+</section>
+
+
+<!-- Featured Food Listings Section -->
+<section id="featured">
+    <h2>Available Food and Resources</h2>
+    <div id="food-listing">
+        <!-- Food listings will be dynamically populated here by JavaScript -->
+    </div>
+</section>
+
+<!-- Footer Section -->
+<footer>
+    <p>&copy; 2024 Food Assistance Platform. All rights reserved.</p>
+</footer>
+
+<!-- Link to JavaScript -->
+<script src="js/main.js"></script>
 </body>
 </html>

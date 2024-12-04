@@ -1,0 +1,68 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dashboard</title>
+    <link rel="stylesheet" href="css/styles.css">
+</head>
+<body>
+    <header>
+        <h1>Welcome to Your Dashboard</h1>
+        <nav id="navbar">
+            <ul class="nav-links">
+                <li><a href="feed.html">Available Food</a></li>
+                <li><a href="reservation.html">Reservation</a></li>
+                <li><a href="#" onclick="logout()">Logout</a></li>
+            </ul>
+        </nav>
+    </header>
+    <main>
+        <!-- Food Post Form -->
+        <section id="submission-form">
+            <h2>Submit Food Availability</h2>
+            <form id="foodPostForm">
+                <label for="food-type">Food Type:</label>
+                <input 
+                    type="text" 
+                    id="food-type" 
+                    name="food_type" 
+                    placeholder="e.g., Fresh Produce, Canned Goods" 
+                    required>
+                <label for="quantity">Quantity:</label>
+                <input 
+                    type="number" 
+                    id="quantity" 
+                    name="quantity" 
+                    placeholder="e.g., 10 bags" 
+                    required>
+                <label for="pickup-time">Pickup Time:</label>
+                <input 
+                    type="datetime-local" 
+                    id="pickup-time" 
+                    name="pickup_time" 
+                    required>
+                <label for="contact-info">Contact Information:</label>
+                <input 
+                    type="text" 
+                    id="contact-info" 
+                    name="contact_info" 
+                    placeholder="e.g., John Doe, (123) 456-7890" 
+                    required>
+                <button type="submit">Submit Food</button>
+            </form>
+        </section>
+        <!-- User's Food Posts -->
+        <section id="food-listing">
+            <h2>Your Food Posts</h2>
+            <div id="food-feed">
+                <!-- User-specific food posts will load here dynamically -->
+            </div>
+        </section>
+    </main>
+    <footer>
+        <p>&copy; 2024 Food Assistance Platform</p>
+    </footer>
+    <script src="js/main.js"></script>
+</body>
+</html>

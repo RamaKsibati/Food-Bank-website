@@ -1,51 +1,168 @@
-document.addEventListener('DOMContentLoaded', function () {
-    // Attach form submit event listener
-    const foodPostForm = document.getElementById('foodPostForm');
-    if (foodPostForm) {
-        foodPostForm.addEventListener('submit', handleFormSubmit);
-    } else {
-        console.error("Element with id 'foodPostForm' not found.");
-    }
-
-    // Load existing food posts
-    loadFoodPosts();
-
-    // Load featured food data (placeholder for now)
+document.addEventListener('DOMContentLoaded', () => {
+    setupSignupForm();
+    setupLoginForm();
+    setupFoodPostForm();
+    loadUserFoodPosts();
     loadFeaturedFood();
+    if (window.location.pathname.includes('dashboared.html')) {
+        loadUserFoodPosts();
+    }
 });
 
-/**
- * Handles the submission of the food post form.
- */
-async function handleFormSubmit(event) {
-    event.preventDefault();
+function logout() {
+    localStorage.removeItem('token'); // Remove the authentication token
+    alert('You have been logged out.');
+    window.location.href = 'index.html'; // Redirect to the home page
+}
 
-    // Gather form data
-    const foodType = document.getElementById('food_type').value;
-    const quantity = document.getElementById('quantity').value;
-    const pickupTime = document.getElementById('pickup_time').value;
-    const contactInfo = document.getElementById('contact_info').value;
-
-    const postData = { food_type: foodType, quantity, pickup_time: pickupTime, contact_info: contactInfo };
+async function loadUserFoodPosts() {
+    const token = localStorage.getItem('token');
+    if (!token) {alert('You must be logged in to access this page.');
+    window.location.href = 'index.html'; return;}
 
     try {
-        const response = await fetch('http://localhost:3000/api/food_posts', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify(postData),
+        const response = await fetch('http://localhost:3000/api/user_food_posts', {
+            headers: { 'Authorization': `Bearer ${token}` },
         });
 
         if (response.ok) {
-            alert('Food posted successfully!');
-            document.getElementById('foodPostForm').reset();
-            loadFoodPosts(); // Refresh food posts after successful submission
+            const foodPosts = await response.json();
+            const feedSection = document.getElementById('food-feed');
+            if (feedSection) {
+                feedSection.innerHTML = ''; // Clear existing content
+                foodPosts.forEach(post => {
+                    const postElement = document.createElement('div');
+                    postElement.classList.add('food-post');
+                    postElement.innerHTML = `
+                        <h3>${post.food_type}</h3>
+                        <p>Quantity: ${post.quantity}</p>
+                        <p>Pickup Time: ${new Date(post.pickup_time).toLocaleString()}</p>
+                        <p>Contact: ${post.contact_info}</p>
+                    `;
+                    feedSection.appendChild(postElement);
+                });
+            } else {
+                console.error('Element with id "food-feed" not found.');
+            }
         } else {
-            console.error('Failed to post food:', await response.json());
-            alert('Error posting food.');
+            console.error('Error fetching user food posts:', await response.text());
         }
     } catch (error) {
-        console.error('Error while posting food:', error);
-        alert('An unexpected error occurred. Please try again.');
+        console.error('Error:', error);
+    }
+}
+
+/**
+ * Handles the sign-up form submission.
+ */
+function setupSignupForm() {
+    const signupForm = document.getElementById('signupForm');
+    if (signupForm) {
+        signupForm.addEventListener('submit', async (event) => {
+            event.preventDefault();
+
+            const username = document.getElementById('username').value;
+            const email = document.getElementById('email').value;
+            const password = document.getElementById('password').value;
+
+            try {
+                const response = await fetch('http://localhost:3000/api/signup', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ username, email, password }),
+                });
+
+                if (response.ok) {
+                    alert('Sign up successful! You can now log in.');
+                    window.location.href = 'login.html';
+                } else {
+                    const error = await response.json();
+                    alert(`Sign up failed: ${error.message}`);
+                }
+            } catch (error) {
+                console.error('Error signing up:', error);
+                alert('An unexpected error occurred.');
+            }
+        });
+    }
+}
+
+/**
+ * Handles the login form submission.
+ */
+function setupLoginForm() {
+    const loginForm = document.getElementById('loginForm');
+    if (loginForm) {
+        loginForm.addEventListener('submit', async (event) => {
+            event.preventDefault();
+
+            const email = document.getElementById('email').value;
+            const password = document.getElementById('password').value;
+
+            try {
+                const response = await fetch('http://localhost:3000/api/login', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ email, password }),
+                });
+
+                if (response.ok) {
+                    const data = await response.json();
+                    localStorage.setItem('token', data.token);
+                    alert('Login successful!');
+                    window.location.href = 'dashboared.html';
+                } else {
+                    alert('Login failed. Please check your credentials.');
+                }
+            } catch (error) {
+                console.error('Error logging in:', error);
+                alert('An unexpected error occurred.');
+            }
+        });
+    }
+}
+
+/**
+ * Handles the food post form submission.
+ */
+function setupFoodPostForm() {
+    const foodPostForm = document.getElementById('foodPostForm');
+    if (foodPostForm) {
+        foodPostForm.addEventListener('submit', async (event) => {
+            event.preventDefault();
+
+            const token = localStorage.getItem('token');
+            if (!token) {
+                alert('You must be logged in to post food.');
+                return;
+            }
+
+            const foodType = document.getElementById('food_type').value;
+            const quantity = document.getElementById('quantity').value;
+            const pickupTime = document.getElementById('pickup_time').value;
+            const contactInfo = document.getElementById('contact_info').value;
+
+            try {
+                const response = await fetch('http://localhost:3000/api/food_posts', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${token}`,
+                    },
+                    body: JSON.stringify({ food_type: foodType, quantity, pickup_time: pickupTime, contact_info: contactInfo }),
+                });
+
+                if (response.ok) {
+                    alert('Food posted successfully!');
+                    loadUserFoodPosts(); // Reload the user's food posts
+                } else {
+                    alert('Error posting food.');
+                }
+            } catch (error) {
+                console.error('Error:', error);
+                alert('An unexpected error occurred.');
+            }
+        });
     }
 }
 
@@ -84,31 +201,7 @@ async function loadFoodPosts() {
 }
 
 /**
- * Reserves a specific food post by its ID.
- */
-async function reserveFood(postId) {
-    try {
-        const response = await fetch(`http://localhost:3000/api/food_posts/${postId}/reserve`, {
-            method: 'PUT',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ user_name: "User", contact_info: "123-456-7890" }),
-        });
-
-        if (response.ok) {
-            alert('Food reserved successfully!');
-            loadFoodPosts(); // Refresh food posts after reservation
-        } else {
-            console.error('Failed to reserve food:', await response.json());
-            alert('Error reserving food.');
-        }
-    } catch (error) {
-        console.error('Error while reserving food:', error);
-        alert('An unexpected error occurred. Please try again.');
-    }
-}
-
-/**
- * Loads placeholder featured food data.
+ * Loads featured food data (placeholder).
  */
 function loadFeaturedFood() {
     const foodData = [
@@ -136,21 +229,7 @@ function loadFeaturedFood() {
     }
 }
 
-/**
- * Simulates search functionality (placeholder).
- */
-function performSearch() {
-    const query = document.getElementById('search-input').value;
-    alert(`Searching for: ${query}`);
-    // Implement backend query for search functionality
-}
 
-/**
- * Simulates viewing detailed food item information.
- */
-function viewDetails(foodId) {
-    alert(`Viewing details for food item ID: ${foodId}`);
-    // Redirect to details page or dynamically load details
-}
+
 
 

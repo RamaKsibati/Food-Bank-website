@@ -1,24 +1,30 @@
-document.addEventListener('DOMContentLoaded', () => {
-    setupSignupForm();
-    setupLoginForm();
-    setupFoodPostForm();
-    loadUserFoodPosts();
-    loadFeaturedFood();
-    if (window.location.pathname.includes('dashboared.html')) {
-        loadUserFoodPosts();
-    }
-});
-
 function logout() {
     localStorage.removeItem('token'); // Remove the authentication token
     alert('You have been logged out.');
     window.location.href = 'index.html'; // Redirect to the home page
 }
+document.addEventListener('DOMContentLoaded', () => {
+    setupSignupForm();
+    setupLoginForm();
+    setupFoodPostForm();
+    
+   
+    if (window.location.pathname.includes('dashboared.html')) {
+        loadUserFoodPosts();
+    }
+    if (window.location.pathname.includes('index.html')) {
+        loadFeaturedFood();
+    }
+    loadFoodPosts();
+});
 
 async function loadUserFoodPosts() {
     const token = localStorage.getItem('token');
-    if (!token) {alert('You must be logged in to access this page.');
-    window.location.href = 'index.html'; return;}
+    if (!token) {
+        alert('You must be logged in to access this page.');
+    window.location.href = 'login.html'; 
+        return;
+    }
 
     try {
         const response = await fetch('http://localhost:3000/api/user_food_posts', {
@@ -137,10 +143,10 @@ function setupFoodPostForm() {
                 return;
             }
 
-            const foodType = document.getElementById('food_type').value;
+            const foodType = document.getElementById('food-type').value;
             const quantity = document.getElementById('quantity').value;
-            const pickupTime = document.getElementById('pickup_time').value;
-            const contactInfo = document.getElementById('contact_info').value;
+            const pickupTime = document.getElementById('pickup-time').value;
+            const contactInfo = document.getElementById('contact-info').value;
 
             try {
                 const response = await fetch('http://localhost:3000/api/food_posts', {
@@ -151,7 +157,7 @@ function setupFoodPostForm() {
                     },
                     body: JSON.stringify({ food_type: foodType, quantity, pickup_time: pickupTime, contact_info: contactInfo }),
                 });
-
+                console.log('Response:', response);
                 if (response.ok) {
                     alert('Food posted successfully!');
                     loadUserFoodPosts(); // Reload the user's food posts

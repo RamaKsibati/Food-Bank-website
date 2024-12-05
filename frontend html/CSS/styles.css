@@ -17,22 +17,23 @@ body {
     background-color: rgba(0, 0, 0, 0.7); /* Black with transparency */
     position: fixed; /* Fixed at the top */
     top: 0;
-    width: 100%; /* Full width */
+    width: 103%; /* Full width */
     z-index: 1000; /* Stay above all other elements */
     box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3); /* Add shadow */
     padding: 10px 0; /* Add padding */
+    margin-left: -40px;
 }
 
 .nav-links {
     display: flex; /* Horizontal layout */
     justify-content:right; /* Center links */
     list-style: none; /* Remove bullets */
-    padding: 0;
+    padding: 10;
     margin: 0;
 }
 
 .nav-links li {
-    margin: 0 15px; /* Space between links */
+    margin: 0 50px; /* Space between links */
 }
 
 .nav-links a {
@@ -265,7 +266,7 @@ footer {
     font-size: 1em; /* Consistent font size */
     margin-top: 40px; /* Space above footer */
     border-radius: 8px; /* Rounded corners */
-    
+
 }
 /* General form styles */
 .form-container {
@@ -319,3 +320,47 @@ button[type="submit"] {
 button[type="submit"]:hover {
     background-color: #45a049; /* Darker green on hover */
 }
+.food-post {
+    background-color: #fdfdfd; /* Light background for cards */
+    border-radius: 10px; /* Rounded corners */
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1); /* Subtle shadow for depth */
+    margin: 20px 10px; /* Spacing between cards */
+    padding: 20px; /* Inner spacing */
+    font-family: 'Poppins', sans-serif; /* Clean font */
+    color: #444; /* Darker text for readability */
+}
+
+.food-post h3 {
+    font-size: 20px; /* Larger heading font */
+    margin-bottom: 10px;
+    color: #828a46; /* A soft green shade for titles */
+}
+
+.food-post p {
+    font-size: 16px; /* Adjust paragraph font size */
+    margin: 5px 0;
+}
+
+.food-post button {
+    display: inline-block;
+    background-color: #828a46; /* Green button */
+    color: white; /* White text */
+    border: none; /* Remove border */
+    padding: 10px 20px; /* Add padding */
+    border-radius: 5px; /* Rounded button */
+    cursor: pointer; /* Pointer cursor on hover */
+    font-size: 16px;
+    transition: background-color 0.3s; /* Smooth hover effect */
+}
+
+.food-post button:hover {
+    background-color: #466623; /* Darker green on hover */
+}
+
+#food-feed {
+    display: flex; /* Flexbox for layout */
+    flex-wrap: wrap; /* Wrap rows for multiple items */
+    justify-content: space-around; /* Space between items */
+}
+
+

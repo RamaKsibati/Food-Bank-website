@@ -12,16 +12,28 @@ app.use(express.json());
 const bcrypt = require('bcrypt');
 const jwt = require('jsonwebtoken');
 const SECRET_KEY = "1993";
-const authenticateToken = (req, res, next) => {
-  const token = req.headers.authorization?.split(' ')[1];
-  if (!token) return res.sendStatus(401);
+// Middleware
+app.use(bodyParser.json());
+
+// Start the server
+const PORT = process.env.PORT || 3000;
+app.listen(PORT, () => {
+  console.log(`Server running on http://localhost:${PORT}`);
+});
+
+function authenticateToken(req, res, next) {
+  const authHeader = req.headers['authorization'];
+  const token = authHeader && authHeader.split(' ')[1]; // Extract token
+
+  if (!token) return res.status(403).send('Access denied. No token provided.');
 
   jwt.verify(token, SECRET_KEY, (err, user) => {
-      if (err) return res.sendStatus(403);
-      req.user = user;
+      if (err) return res.status(403).send('Invalid or expired token.');
+      req.user = user; // Attach user info to request
       next();
   });
-};
+}
+
 app.get('/api/user_food_posts', authenticateToken, async (req, res) => {
   try {
       const [posts] = await db.query('SELECT * FROM food_posts WHERE user_id = ?', [req.user.userId]);
@@ -83,7 +95,7 @@ app.post('/api/login', async (req, res) => {
       }
 
       // Generate a JWT token
-      const token = jwt.sign({ userId: user.id }, 'your_secret_key', { expiresIn: '1h' });
+      const token = jwt.sign({ userId: user.user_id }, '1993', { expiresIn: '1h' });
 
       res.json({ token });
   } catch (error) {
@@ -94,14 +106,7 @@ app.post('/api/login', async (req, res) => {
 
 
 
-// Middleware
-app.use(bodyParser.json());
 
-// Start the server
-const PORT = process.env.PORT || 3000;
-app.listen(PORT, () => {
-  console.log(`Server running on http://localhost:${PORT}`);
-});
 // server.js (continued)
 
 // Route to post new food
@@ -119,15 +124,16 @@ app.post('/api/food_posts', authenticateToken, async (req, res) => {
 // server.js (continued)
 
 // Route to get all food posts
-app.get('/api/food_posts', (req, res) => {
-    const query = 'SELECT * FROM Food_Posts WHERE reserved_status = false ORDER BY posted_at DESC';
-    db.query(query, (err, results) => {
-      if (err) {
-        return res.status(500).send('Error retrieving food posts');
-      }
-      res.status(200).json(results);
-    });
-  });
+app.get('/api/food_posts', async (req, res) => {
+  try {
+      const [posts] = await db.query('SELECT * FROM food_posts');
+      res.json(posts);
+  } catch (error) {
+      console.error('Error fetching food posts:', error);
+      res.status(500).json({ message: 'Internal server error' });
+  }
+});
+
 // server.js (continued)
 
 // Route to reserve food

@@ -7,6 +7,15 @@ document.addEventListener('DOMContentLoaded', () => {
     setupSignupForm();
     setupLoginForm();
     setupFoodPostForm();
+
+    const token = localStorage.getItem('token');
+ 
+    const dashboardLink = document.getElementById('Dashboard');
+
+    // Show dashboard link only if the user is authenticated
+    if (token && dashboardLink) {
+        dashboardLink.style.display = 'block';
+    }
     
    
     if (window.location.pathname.includes('dashboared.html')) {
@@ -232,6 +241,35 @@ function loadFeaturedFood() {
         });
     } else {
         console.error("Element with id 'food-listing' not found.");
+    }
+}
+async function reserveFood(postId) {
+    const token = localStorage.getItem('token');
+    if (!token) {
+        alert('You must be logged in to reserve food.');
+        return;
+    }
+
+    try {
+        const response = await fetch(`http://localhost:3000/api/food_posts/${postId}/reserve`, {
+            method: 'PUT',
+            headers: {
+                'Content-Type': 'application/json',
+                'Authorization': `Bearer ${token}`,
+            },
+        });
+
+        if (response.ok) {
+            alert('Food reserved successfully!');
+            loadFoodPosts(); // Refresh food posts after reservation
+        } else {
+            const error = await response.json();
+            console.error('Failed to reserve food:', error);
+            alert(`Error: ${error.message}`);
+        }
+    } catch (error) {
+        console.error('Error while reserving food:', error);
+        alert('An unexpected error occurred. Please try again.');
     }
 }
 

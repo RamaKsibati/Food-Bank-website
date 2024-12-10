@@ -9,7 +9,7 @@ const app = express();
 app.use(cors());
 app.use(express.json());
 
-const bcrypt = require('bcrypt');
+const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
 const SECRET_KEY = "1993";
 // Middleware
@@ -140,6 +140,7 @@ app.get('/api/food_posts', async (req, res) => {
 app.put('/api/food_posts/:id/reserve', authenticateToken, async (req, res) => {
   const { id } = req.params;
 
+try {
   const post = await db.query('SELECT * FROM food_posts WHERE post_id = ?', [id]);
   if (post.length === 0 || post[0].user_id !== req.user.userId) {
       return res.status(403).json({ message: 'You are not authorized to reserve this food post' });
@@ -147,6 +148,12 @@ app.put('/api/food_posts/:id/reserve', authenticateToken, async (req, res) => {
 
   await db.query('UPDATE food_posts SET reserved = TRUE WHERE post_id = ?', [id]);
   res.json({ message: 'Food reserved successfully' });
+} 
+catch (error) {
+    console.error('Error in reserve API:', error);
+    res.status(500).json({ message: 'Internal server error' });
+}
+
 });
 
   

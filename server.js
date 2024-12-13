@@ -19,6 +19,16 @@ app.use(express.json());
 const SECRET_KEY = process.env.SECRET_KEY || '1993'; // Use environment variable for Heroku
 const PORT = process.env.PORT || 3000;
 
+const path = require('path');
+
+// Serve static files (if you have a front-end build)
+app.use(express.static(path.join(__dirname, 'public')));
+
+// Root route handler
+app.get('/', (req, res) => {
+    res.send('Welcome to the Food Bank API!');
+});
+
 // Authentication Middleware
 function authenticateToken(req, res, next) {
     const authHeader = req.headers['authorization'];

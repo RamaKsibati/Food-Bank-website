@@ -12,7 +12,7 @@ const app = express();
 
 // Middleware
 app.use(cors({
-    origin: 'https://damp-gorge-80419.herokuapp.com', // Replace '*' with your frontend URL for production (e.g., 'https://damp-gorge-80419.herokuapp.com')
+    origin: 'https://damp-gorge-80419-3d52af321caf.herokuapp.com', // Replace '*' with your frontend URL for production (e.g., 'https://damp-gorge-80419.herokuapp.com')
     methods: ['GET', 'POST', 'PUT', 'DELETE'],
     allowedHeaders: ['Content-Type', 'Authorization'],
   }));

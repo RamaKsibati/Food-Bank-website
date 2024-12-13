@@ -20,6 +20,9 @@ const pool = new Pool({
     idleTimeoutMillis: 30000, // Close idle clients after 30 seconds
     connectionTimeoutMillis: 2000, // Return an error if a connection is not established in 2 seconds
 });
-
+pool.on('error', (err, client) => {
+    console.error('Unexpected error on idle PostgreSQL client', err);
+    process.exit(-1);
+});
 // Export the connection pool for use in other parts of the application
 module.exports = pool;

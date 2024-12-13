@@ -11,7 +11,11 @@ const db = require('./db'); // Make sure `db.js` is updated for PostgreSQL
 const app = express();
 
 // Middleware
-app.use(cors());
+app.use(cors({
+    origin: 'https://damp-gorge-80419.herokuapp.com', // Replace '*' with your frontend URL for production (e.g., 'https://damp-gorge-80419.herokuapp.com')
+    methods: ['GET', 'POST', 'PUT', 'DELETE'],
+    allowedHeaders: ['Content-Type', 'Authorization'],
+  }));
 app.use(bodyParser.json());
 app.use(express.json());
 

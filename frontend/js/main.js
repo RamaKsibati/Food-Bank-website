@@ -180,6 +180,7 @@ function setupFoodPostForm() {
         });
     }
 }
+const API_URL = 'https://damp-gorge-80419.herokuapp.com/api/food_posts';
 
 // Load All Food Posts
 async function loadFoodPosts() {

@@ -32,6 +32,52 @@ app.use(express.static(path.join(__dirname, 'frontend')));
 app.get('/', (req, res) => {
     res.sendFile(path.join(__dirname, 'frontend', 'index.html'));
 });
+app.get('*', (req, res) => {
+    res.sendFile(path.resolve(__dirname, 'frontend', 'index.html'));
+});
+
+
+// Start the server
+app.listen(PORT, () => {
+    console.log(`Server running on http://localhost:${PORT}`);
+});
+const { Client } = require("pg");
+const dotenv = require("dotenv");
+dotenv.config();
+
+const isProduction = process.env.NODE_ENV === "production";
+
+let dbConfig;
+
+if (isProduction) {
+  // Heroku DATABASE_URL parsing
+  const { Pool } = require("pg");
+  const { URL } = require("url");
+  const dbUrl = new URL(process.env.DATABASE_URL);
+  dbConfig = {
+    user: dbUrl.username,
+    password: dbUrl.password,
+    host: dbUrl.hostname,
+    port: dbUrl.port,
+    database: dbUrl.pathname.slice(1), // Remove the leading '/'
+    ssl: { rejectUnauthorized: false }, // Required for Heroku
+  };
+} else {
+  // Local MySQL or PostgreSQL configuration
+  dbConfig = {
+    host: process.env.DB_HOST || "localhost",
+    user: process.env.DB_USER || "Rama",
+    password: process.env.DB_PASSWORD || "Ramasalah",
+    database: process.env.DB_NAME || "food-donation",
+    port: process.env.DB_PORT || 3306,
+  };
+}
+
+// Connect to database
+const client = new Client(dbConfig);
+client.connect().then(() => console.log("Connected to database"));
+
+
 
 // Authentication Middleware
 function authenticateToken(req, res, next) {
@@ -167,11 +213,4 @@ app.put('/api/food_posts/:id/reserve', authenticateToken, async (req, res) => {
         res.status(500).json({ message: 'Internal server error' });
     }
 });
-app.get('*', (req, res) => {
-    res.sendFile(path.resolve(__dirname, 'frontend', 'index.html'));
-});
 
-// Start the server
-app.listen(PORT, () => {
-    console.log(`Server running on http://localhost:${PORT}`);
-});

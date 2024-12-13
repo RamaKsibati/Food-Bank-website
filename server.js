@@ -22,11 +22,11 @@ const PORT = process.env.PORT || 3000;
 const path = require('path');
 
 // Serve static files (if you have a front-end build)
-app.use(express.static(path.join(__dirname, 'public')));
+app.use(express.static(path.join(__dirname, 'frontend')));
 
 // Root route handler
 app.get('/', (req, res) => {
-    res.send('Welcome to the Food Bank API!');
+    res.sendFile(path.join(__dirname, 'frontend', 'index.html'));
 });
 
 // Authentication Middleware
@@ -162,6 +162,9 @@ app.put('/api/food_posts/:id/reserve', authenticateToken, async (req, res) => {
         console.error('Error in reserve API:', error);
         res.status(500).json({ message: 'Internal server error' });
     }
+});
+app.get('*', (req, res) => {
+    res.sendFile(path.resolve(__dirname, 'frontend', 'index.html'));
 });
 
 // Start the server

@@ -1,48 +1,42 @@
-// Base URL for API calls
-const BASE_URL = "https://damp-gorge-80419.herokuapp.com";
-
-// Logout Function
 function logout() {
     localStorage.removeItem('token'); // Remove the authentication token
     alert('You have been logged out.');
     window.location.href = 'index.html'; // Redirect to the home page
 }
-
-// DOM Content Loaded
 document.addEventListener('DOMContentLoaded', () => {
     setupSignupForm();
     setupLoginForm();
     setupFoodPostForm();
 
     const token = localStorage.getItem('token');
+ 
     const dashboardLink = document.getElementById('Dashboard');
 
     // Show dashboard link only if the user is authenticated
     if (token && dashboardLink) {
         dashboardLink.style.display = 'block';
     }
-
+    
+   
     if (window.location.pathname.includes('dashboared.html')) {
         loadUserFoodPosts();
     }
     if (window.location.pathname.includes('index.html')) {
         loadFeaturedFood();
     }
-
     loadFoodPosts();
 });
 
-// Load User Food Posts
 async function loadUserFoodPosts() {
     const token = localStorage.getItem('token');
     if (!token) {
         alert('You must be logged in to access this page.');
-        window.location.href = 'login.html'; 
+    window.location.href = 'login.html'; 
         return;
     }
 
     try {
-        const response = await fetch(`${BASE_URL}/api/user_food_posts`, {
+        const response = await fetch('http://localhost:3000/api/user_food_posts', {
             headers: { 'Authorization': `Bearer ${token}` },
         });
 
@@ -73,7 +67,9 @@ async function loadUserFoodPosts() {
     }
 }
 
-// Setup Signup Form
+/**
+ * Handles the sign-up form submission.
+ */
 function setupSignupForm() {
     const signupForm = document.getElementById('signupForm');
     if (signupForm) {
@@ -85,7 +81,7 @@ function setupSignupForm() {
             const password = document.getElementById('password').value;
 
             try {
-                const response = await fetch(`${BASE_URL}/api/signup`, {
+                const response = await fetch('http://localhost:3000/api/signup', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({ username, email, password }),
@@ -106,7 +102,9 @@ function setupSignupForm() {
     }
 }
 
-// Setup Login Form
+/**
+ * Handles the login form submission.
+ */
 function setupLoginForm() {
     const loginForm = document.getElementById('loginForm');
     if (loginForm) {
@@ -117,7 +115,7 @@ function setupLoginForm() {
             const password = document.getElementById('password').value;
 
             try {
-                const response = await fetch(`${BASE_URL}/api/login`, {
+                const response = await fetch('http://localhost:3000/api/login', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({ email, password }),
@@ -139,7 +137,9 @@ function setupLoginForm() {
     }
 }
 
-// Setup Food Post Form
+/**
+ * Handles the food post form submission.
+ */
 function setupFoodPostForm() {
     const foodPostForm = document.getElementById('foodPostForm');
     if (foodPostForm) {
@@ -158,7 +158,7 @@ function setupFoodPostForm() {
             const contactInfo = document.getElementById('contact-info').value;
 
             try {
-                const response = await fetch(`${BASE_URL}/api/food_posts`, {
+                const response = await fetch('http://localhost:3000/api/food_posts', {
                     method: 'POST',
                     headers: {
                         'Content-Type': 'application/json',
@@ -166,7 +166,7 @@ function setupFoodPostForm() {
                     },
                     body: JSON.stringify({ food_type: foodType, quantity, pickup_time: pickupTime, contact_info: contactInfo }),
                 });
-
+                console.log('Response:', response);
                 if (response.ok) {
                     alert('Food posted successfully!');
                     loadUserFoodPosts(); // Reload the user's food posts
@@ -180,12 +180,13 @@ function setupFoodPostForm() {
         });
     }
 }
-const API_URL = 'https://damp-gorge-80419.herokuapp.com/api/food_posts';
 
-// Load All Food Posts
+/**
+ * Loads all food posts from the server and populates the feed.
+ */
 async function loadFoodPosts() {
     try {
-        const response = await fetch(`${BASE_URL}/api/food_posts`);
+        const response = await fetch('http://localhost:3000/api/food_posts');
         if (!response.ok) throw new Error('Failed to fetch food posts.');
 
         const foodPosts = await response.json();
@@ -214,7 +215,34 @@ async function loadFoodPosts() {
     }
 }
 
-// Reserve Food
+/**
+ * Loads featured food data (placeholder).
+ */
+function loadFeaturedFood() {
+    const foodData = [
+        { id: 1, title: 'Fresh Vegetables', description: 'Available until 4 PM', image: 'img/vegetables.jpg' },
+        { id: 2, title: 'Canned Goods', description: 'Available all day', image: 'img/canned goods.jpg' },
+        { id: 3, title: 'Bread and Bakery Items', description: 'Available until 6 PM', image: 'img/bread.jpg' },
+    ];
+
+    const foodListing = document.getElementById('food-listing');
+    if (foodListing) {
+        foodListing.innerHTML = ''; // Clear previous content
+        foodData.forEach(food => {
+            const foodItem = document.createElement('div');
+            foodItem.classList.add('food-item');
+            foodItem.innerHTML = `
+                <img src="${food.image}" alt="${food.title}">
+                <h3>${food.title}</h3>
+                <p>${food.description}</p>
+                <button onclick="viewDetails(${food.id})">View Details</button>
+            `;
+            foodListing.appendChild(foodItem);
+        });
+    } else {
+        console.error("Element with id 'food-listing' not found.");
+    }
+}
 async function reserveFood(postId) {
     const token = localStorage.getItem('token');
     if (!token) {
@@ -223,7 +251,7 @@ async function reserveFood(postId) {
     }
 
     try {
-        const response = await fetch(`${BASE_URL}/api/food_posts/${postId}/reserve`, {
+        const response = await fetch(`http://localhost:3000/api/food_posts/${postId}/reserved`, {
             method: 'PUT',
             headers: {
                 'Content-Type': 'application/json',
@@ -244,8 +272,6 @@ async function reserveFood(postId) {
         alert('An unexpected error occurred. Please try again.');
     }
 }
-
-
 
 
 

@@ -1,4 +1,4 @@
-const mysql = require('mysql2/promise');
+const mysql = require('mysql2');
 
 // Print environment variables for debugging
 console.log("DB_HOST:", process.env.DB_HOST);

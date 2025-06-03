@@ -5,10 +5,12 @@ const express = require('express');
 const cors = require('cors');
 const bodyParser = require('body-parser');
 const db = require('./db');
+const path = require('path');
 
 const app = express();
 app.use(cors());
 app.use(express.json());
+app.use(express.static(path.join(__dirname, 'frontend')));
 
 const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
@@ -16,11 +18,18 @@ const SECRET_KEY = "1993";
 // Middleware
 app.use(bodyParser.json());
 
-// Start the server
-const PORT = process.env.PORT || 3000;
-app.listen(PORT, () => {
-  console.log(`Server running on http://localhost:${PORT}`);
+// Serve static frontend files
+app.get('/', (req, res) => {
+  res.sendFile(path.join(__dirname, 'frontend', 'index.html'));
 });
+
+// Start the server only if this file is run directly
+const PORT = process.env.PORT || 3000;
+if (require.main === module) {
+  app.listen(PORT, () => {
+    console.log(`Server running on http://localhost:${PORT}`);
+  });
+}
 
 function authenticateToken(req, res, next) {
   const authHeader = req.headers['authorization'];
@@ -156,3 +165,5 @@ catch (error) {
 }
 
 });
+
+module.exports = app;

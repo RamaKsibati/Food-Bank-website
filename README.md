@@ -108,7 +108,14 @@ Copy code
 npm start
 The server will run at: http://localhost:3000
 
-Run the Frontend Open index.html in your browser to interact with the application.
+Run the Frontend:
+After starting the server, open your browser to:
+
+```
+http://localhost:3000/
+```
+
+The server serves the frontend files from the `frontend` directory.
 
 API Endpoints
 Authentication
@@ -151,6 +158,13 @@ Using Postman:
 
 Test all API endpoints (e.g., /api/signup, /api/login, /api/food_posts).
 Verify user authentication and food reservation logic.
+
+Automated Testing:
+Run all Mocha tests with:
+
+```bash
+npm test
+```
 Frontend Testing:
 
 Use a browser to test:

@@ -98,7 +98,7 @@ app.post('/api/login', async (req, res) => {
       }
 
       // Generate a JWT token
-      const token = jwt.sign({ userId: user.user_id }, '1993', { expiresIn: '1h' });
+      const token = jwt.sign({ userId: user.user_id }, SECRET_KEY, { expiresIn: '1h' });
 
       res.json({ token });
   } catch (error) {
@@ -116,7 +116,7 @@ app.post('/api/login', async (req, res) => {
 app.post('/api/food_posts', authenticateToken, async (req, res) => {
   const { food_type, quantity, pickup_time, contact_info } = req.body;
 
-  const result = await db.query(
+  const [result] = await db.query(
       'INSERT INTO food_posts (food_type, quantity, pickup_time, contact_info, user_id) VALUES (?, ?, ?, ?, ?)',
       [food_type, quantity, pickup_time, contact_info, req.user.userId]
   );

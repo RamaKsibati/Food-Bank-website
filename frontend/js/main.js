@@ -36,7 +36,7 @@ async function loadUserFoodPosts() {
     }
 
     try {
-        const response = await fetch('http://localhost:3000/api/user_food_posts', {
+        const response = await fetch('/api/user_food_posts', {
             headers: { 'Authorization': `Bearer ${token}` },
         });
 
@@ -81,7 +81,7 @@ function setupSignupForm() {
             const password = document.getElementById('password').value;
 
             try {
-                const response = await fetch('http://localhost:3000/api/signup', {
+                const response = await fetch('/api/signup', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({ username, email, password }),
@@ -115,7 +115,7 @@ function setupLoginForm() {
             const password = document.getElementById('password').value;
 
             try {
-                const response = await fetch('http://localhost:3000/api/login', {
+                const response = await fetch('/api/login', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({ email, password }),
@@ -158,7 +158,7 @@ function setupFoodPostForm() {
             const contactInfo = document.getElementById('contact-info').value;
 
             try {
-                const response = await fetch('http://localhost:3000/api/food_posts', {
+                const response = await fetch('/api/food_posts', {
                     method: 'POST',
                     headers: {
                         'Content-Type': 'application/json',
@@ -186,7 +186,7 @@ function setupFoodPostForm() {
  */
 async function loadFoodPosts() {
     try {
-        const response = await fetch('http://localhost:3000/api/food_posts');
+        const response = await fetch('/api/food_posts');
         if (!response.ok) throw new Error('Failed to fetch food posts.');
 
         const foodPosts = await response.json();
@@ -251,7 +251,7 @@ async function reserveFood(postId) {
     }
 
     try {
-        const response = await fetch(`http://localhost:3000/api/food_posts/${postId}/reserved`, {
+        const response = await fetch(`/api/food_posts/${postId}/reserved`, {
             method: 'PUT',
             headers: {
                 'Content-Type': 'application/json',

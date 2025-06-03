@@ -96,7 +96,7 @@ app.post('/api/login', async (req, res) => {
       }
 
       // Generate a JWT token
-      const token = jwt.sign({ userId: user.user_id }, '1993', { expiresIn: '1h' });
+      const token = jwt.sign({ userId: user.user_id }, SECRET_KEY, { expiresIn: '1h' });
 
       res.json({ token });
   } catch (error) {
@@ -114,7 +114,7 @@ app.post('/api/login', async (req, res) => {
 app.post('/api/food_posts', authenticateToken, async (req, res) => {
   const { food_type, quantity, pickup_time, contact_info } = req.body;
 
-  const result = await db.query(
+  const [result] = await db.query(
       'INSERT INTO food_posts (food_type, quantity, pickup_time, contact_info, user_id) VALUES (?, ?, ?, ?, ?)',
       [food_type, quantity, pickup_time, contact_info, req.user.userId]
   );
@@ -142,8 +142,8 @@ app.put('/api/food_posts/:id/reserved', authenticateToken, async (req, res) => {
   const { id } = req.params;
 
 try {
-  const post = await db.query('SELECT * FROM food_posts WHERE post_id = ?', [id]);
-  if (post.length === 0 || post[0].user_id !== req.user.userId) {
+  const [rows] = await db.query('SELECT * FROM food_posts WHERE post_id = ?', [id]);
+  if (rows.length === 0 || rows[0].user_id !== req.user.userId) {
       return res.status(403).json({ message: 'You are not authorized to reserve this food post' });
   }
 

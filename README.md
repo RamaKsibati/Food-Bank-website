@@ -180,7 +180,7 @@ Add geolocation to locate nearby food donations.
 Author
 Rama Ksibati
 Computer Science Student
-Email: your-email@example.com
+Email: rksibati@umich.edu
 
 License
 This project is licensed under the MIT License.

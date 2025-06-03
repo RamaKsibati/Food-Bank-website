@@ -141,9 +141,10 @@ app.get('/api/food_posts', async (req, res) => {
 app.put('/api/food_posts/:id/reserved', authenticateToken, async (req, res) => {
   const { id } = req.params;
 
+
 try {
-  const post = await db.query('SELECT * FROM food_posts WHERE post_id = ?', [id]);
-  if (post.length === 0 || post[0].user_id !== req.user.userId) {
+  const [rows] = await db.query('SELECT * FROM food_posts WHERE post_id = ?', [id]);
+  if (rows.length === 0 || rows[0].user_id !== req.user.userId) {
       return res.status(403).json({ message: 'You are not authorized to reserve this food post' });
   }
 

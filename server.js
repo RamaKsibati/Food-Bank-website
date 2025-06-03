@@ -16,11 +16,13 @@ const SECRET_KEY = "1993";
 // Middleware
 app.use(bodyParser.json());
 
-// Start the server
+// Start the server only if this file is run directly
 const PORT = process.env.PORT || 3000;
-app.listen(PORT, () => {
-  console.log(`Server running on http://localhost:${PORT}`);
-});
+if (require.main === module) {
+  app.listen(PORT, () => {
+    console.log(`Server running on http://localhost:${PORT}`);
+  });
+}
 
 function authenticateToken(req, res, next) {
   const authHeader = req.headers['authorization'];
@@ -156,3 +158,5 @@ catch (error) {
 }
 
 });
+
+module.exports = app;

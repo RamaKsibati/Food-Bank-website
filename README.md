@@ -151,6 +151,13 @@ Using Postman:
 
 Test all API endpoints (e.g., /api/signup, /api/login, /api/food_posts).
 Verify user authentication and food reservation logic.
+
+Automated Testing:
+Run all Mocha tests with:
+
+```bash
+npm test
+```
 Frontend Testing:
 
 Use a browser to test:

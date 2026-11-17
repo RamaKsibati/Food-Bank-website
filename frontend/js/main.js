@@ -1,4 +1,4 @@
-const API_BASE = (window.FOOD_API_BASE || 'http://localhost:3000').replace(/\/$/, '');
+const API_BASE = (window.FOOD_API_BASE || ((window.location.hostname === 'localhost' && !['3000', ''].includes(window.location.port)) ? 'http://localhost:3000' : window.location.origin)).replace(/\/$/, '');
 
 function logout() {
   localStorage.removeItem('token');

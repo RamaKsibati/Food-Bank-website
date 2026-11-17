@@ -14,6 +14,8 @@ const pool = mysql.createPool({
   password: process.env.DB_PASSWORD,
   database: process.env.DB_NAME,
   port: Number(process.env.DB_PORT || 3306),
+  // Cloud MySQL-compatible services such as TiDB Cloud require TLS.
+  ...(process.env.DB_SSL === 'true' ? { ssl: { rejectUnauthorized: true } } : {}),
   waitForConnections: true,
   connectionLimit: 10,
   queueLimit: 0

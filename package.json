@@ -6,7 +6,9 @@
   "scripts": {
     "start": "node server.js",
     "db:setup": "node setupDatabase.js",
-    "test": "mocha test/**/*.test.js"
+    "test": "npm run test:unit",
+    "test:unit": "mocha test/auth.test.js",
+    "test:integration": "mocha test/integration.test.js"
   },
   "dependencies": {
     "bcryptjs": "^2.4.3",

@@ -5,6 +5,7 @@ const cors = require('cors');
 const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
 const db = require('./db');
+const path = require('path');
 
 if (!process.env.JWT_SECRET || process.env.JWT_SECRET.length < 32) {
   throw new Error('JWT_SECRET must be set to a random secret at least 32 characters long');
@@ -13,6 +14,10 @@ if (!process.env.JWT_SECRET || process.env.JWT_SECRET.length < 32) {
 const app = express();
 app.use(cors());
 app.use(express.json({ limit: '20kb' }));
+
+// Serve the web interface and API from the same origin in hosted deployments.
+app.use(express.static(path.join(__dirname, 'frontend'), { extensions: ['html'] }));
+app.get('/healthz', (_req, res) => res.json({ status: 'ok' }));
 
 const PORT = Number(process.env.PORT || 3000);
 const JWT_SECRET = process.env.JWT_SECRET;

@@ -1,187 +1,112 @@
-Food Donation Website
-Project Overview
-The Food Donation Website is a web-based application that connects food donors with recipients, helping reduce food waste and support those in need. Users can post food donations, view available posts, and reserve food through a clean and user-friendly interface.
+# Feed Dearborn — Food Donation & Reservation Platform
 
-This project uses a Node.js backend with Express.js for the API and MySQL as the database. The frontend is built using HTML, CSS, and JavaScript.
+**Node.js · Express · MySQL · JavaScript · REST API · Automated Tests**
 
-Features
-Key Features
-User Authentication
+A student full-stack project connecting donors with people seeking food. Users can sign up, publish food listings, browse availability, and reserve a listing. This repository demonstrates relational schema design, authentication, authorization, defensive API validation, and transaction-safe reservation logic.
 
-Secure signup and login functionality using JWT (JSON Web Tokens).
-Passwords are securely hashed with bcrypt.
-Post Food Donations
+> **Project status:** Portfolio-ready documentation and security-focused refactor. End-to-end execution against a live MySQL instance has not yet been independently verified. This is a student demonstration, not a production food assistance service.
 
-Authenticated users can create food donation posts with details like:
-Food type
-Quantity
-Pickup time
-Contact information
-View and Reserve Food
+## Features
 
-Users can view all available food posts.
-Food posts can only be reserved by the user who created them.
-User Dashboard
+- Account registration with bcrypt password hashing and login with short-lived JWTs
+- Authenticated users can create and view their own food posts
+- Public listings show available food **without publishing donors' contact details**
+- A logged-in recipient can reserve a post owned by someone else
+- Transaction and row-level locking prevent two simultaneous reservations of the same post
+- Duplicate registrations, invalid requests, nonexistent listings, and conflicts return meaningful HTTP statuses
+- Automated API tests for registration, login, authorization, feed privacy, and reservation conflicts
 
-Users can view and manage their own food posts.
-Dynamic UI
+## Architecture
 
-A responsive interface to browse, manage, and interact with food posts.
-Technologies Used
-Backend:
-Node.js: JavaScript runtime environment.
-Express.js: Web framework for creating RESTful APIs.
-MySQL: Relational database to store users and food posts.
-bcryptjs: Secure password hashing.
-jsonwebtoken: User authentication using JWT.
-CORS: Handles cross-origin requests.
-dotenv: Manages environment variables.
-Frontend:
-HTML, CSS, JavaScript: For the client-side interface.
-Fetch API: To interact with backend endpoints.
-Installation
-Follow the steps to set up the project on your local machine:
-
-Prerequisites
-Make sure the following tools are installed:
-
-Node.js (v18+)
-XAMPP or MySQL server
-npm (Node Package Manager)
-Steps to Run Locally:
-Clone the Repository
-
-bash
-Copy code
-git clone https://github.com/your-repository/food-donation.git
-cd food-donation
-Install Dependencies Install all required packages:
-
-bash
-Copy code
-npm install
-Set Up MySQL Database
-
-Start XAMPP and open phpMyAdmin.
-Create a new database named food-donation.
-Import the following SQL structure:
-sql
-Copy code
-CREATE TABLE users (
-    user_id INT AUTO_INCREMENT PRIMARY KEY,
-    username VARCHAR(50),
-    email VARCHAR(100) UNIQUE,
-    password VARCHAR(255)
-);
-
-CREATE TABLE food_posts (
-    post_id INT AUTO_INCREMENT PRIMARY KEY,
-    user_id INT,
-    food_type VARCHAR(100),
-    quantity INT,
-    pickup_time DATETIME,
-    contact_info VARCHAR(100),
-    reserved BOOLEAN DEFAULT 0
-);
-
-CREATE TABLE reservations (
-    reservation_id INT AUTO_INCREMENT PRIMARY KEY,
-    post_id INT,
-    user_id INT,
-    reserved_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
-);
-Environment Variables
-
-Create a .env file in the project root and add your database credentials:
-env
-Copy code
-DB_HOST=localhost
-DB_USER=your-mysql-username
-DB_PASSWORD=your-mysql-password
-DB_NAME=food-donation
-DB_PORT=3306
-SECRET_KEY=your-secret-key
-Run the Server Start the backend server:
-
-bash
-Copy code
-npm start
-The server will run at: http://localhost:3000
-
-Run the Frontend Open index.html in your browser to interact with the application.
-
-API Endpoints
-Authentication
-Method	Endpoint	Description
-POST	/api/signup	User registration
-POST	/api/login	User login
-Food Posts
-Method	Endpoint	Description
-GET	/api/food_posts	Retrieve all food posts
-POST	/api/food_posts	Create a new food post
-PUT	/api/food_posts/:id/reserve	Reserve a food post
-User Dashboard
-Method	Endpoint	Description
-GET	/api/user_food_posts	Retrieve user's own food posts
-Directory Structure
-bash
-Copy code
-food-donation/
-│
-├── frontend/
-│   ├── CSS/             # Stylesheets
-│   ├── img/             # Images
-│   └── js/              # Frontend scripts
-│       └── main.js
-│   ├── index.html       # Home page
-│   ├── login.html       # Login page
-│   ├── signup.html      # Signup page
-│   ├── dashboard.html   # User dashboard
-│   └── feed.html        # Food posts feed
-│
-├── db.js                # MySQL database connection
-├── server.js            # Backend server
-├── package.json         # Project dependencies
-├── .env                 # Environment variables
-├── .gitignore           # Ignore node_modules and sensitive files
-└── README.md            # Project documentation
-Testing
-Manual Testing:
-Using Postman:
-
-Test all API endpoints (e.g., /api/signup, /api/login, /api/food_posts).
-Verify user authentication and food reservation logic.
-
-Automated Testing:
-Run all Mocha tests with:
-
-```bash
-npm test
+```text
+Browser (HTML/CSS/JavaScript)
+     |
+     | HTTP /api/*
+     v
+Express API + JWT authentication
+     |
+     | parameterized SQL / transactions
+     v
+MySQL
+  users ─── food_posts ─── reservations
 ```
-Frontend Testing:
 
-Use a browser to test:
-User signup and login.
-Creating and viewing food posts.
-Reserving food posts.
-Deployment
-Deployment on Localhost:
-Run the server using npm start.
-Open the frontend files (index.html) in your browser.
-Deployment to Vercel/Heroku:
-Host the frontend on Vercel.
-Deploy the backend to Heroku or any Node.js hosting provider.
-Update the API URLs in main.js to match your backend deployment URL.
-Future Improvements
-Add search and filter functionality for food posts.
-Notify donors via email when food is reserved.
-Improve frontend UI with frameworks like Bootstrap or Tailwind CSS.
-Add geolocation to locate nearby food donations.
-Author
-Rama Ksibati
-Computer Science Student
-Email: rksibati@umich.edu
+### Data model
 
-License
-This project is licensed under the MIT License.
+| Table | Key fields | Purpose |
+|---|---|---|
+| `users` | `user_id` PK, unique `email`, password hash | Registered accounts |
+| `food_posts` | `post_id` PK, `user_id` FK, food details, `reserved` | Donations and ownership |
+| `reservations` | `reservation_id` PK, unique `post_id` FK, `user_id` FK | Which account reserved which post |
 
+A unique `reservations.post_id` constraint prevents multiple reservations for the same listing. The reservation endpoint also locks a row with `SELECT ... FOR UPDATE` and updates/creates the reservation in a single transaction.
+
+## Local setup
+
+**Prerequisites:** Node.js (18+), npm, and MySQL 8+.
+
+1. Clone this repo and run `npm install`.
+2. In MySQL, create an empty database (for example `CREATE DATABASE food_donation;`) and a local DB user with permission to access it.
+3. Copy `.env.example` to `.env`. Set `DB_HOST`, `DB_USER`, `DB_PASSWORD`, `DB_NAME`, `DB_PORT` and a **new random** `JWT_SECRET` of 32+ characters. Never commit the `.env` file.
+4. Run `npm run db:setup` to initialize the three tables. **Note:** `CREATE TABLE IF NOT EXISTS` does not migrate existing incompatible schemas; use a fresh database or review migrations before applying this to old data.
+5. Run `npm start` to serve the API at `http://localhost:3000`.
+6. Serve the `frontend/` directory with a local static web server (for example `python -m http.server 8000 --directory frontend`) and open `http://localhost:8000`.
+
+The frontend calls `http://localhost:3000` by default. Configure `window.FOOD_API_BASE` before loading `frontend/js/main.js` to point to another API base if required. The project currently uses permissive CORS for local development; restrict allowed origins before production deployment.
+
+## API overview
+
+| Method | Endpoint | Authentication | Description |
+|---|---|---|---|
+| POST | `/api/signup` | No | Create account |
+| POST | `/api/login` | No | Get one-hour JWT |
+| GET | `/api/food_posts` | No | Browse unreserved posts, without owner contacts |
+| POST | `/api/food_posts` | Yes | Post food |
+| GET | `/api/user_food_posts` | Yes | List your own posts with contact information |
+| PUT | `/api/food_posts/:id/reserved` | Yes | Reserve someone else's post |
+| PUT | `/api/food_posts/:id/reserve` | Yes | Alternate reserve route |
+
+Requests with tokens must include `Authorization: Bearer <token>`. Signup requires a valid email and a password of 8–128 characters. Food-post requests require positive integer quantity and valid text/pickup date fields.
+
+## Tests
+
+Run `npm test`. API tests use a mock database: no MySQL server is needed to exercise the authentication and basic reservation endpoints. These tests **do not** replace an integration test against MySQL, especially for concurrency and migration behavior.
+
+## Business and data opportunities
+
+Once the service is tested with real or consented demonstration records, SQL dashboards could summarize:
+
+- Number of food listings and successful reservations over time
+- Categories with high demand versus available donations
+- Reservation completion rate and frequently available food types
+- Pick-up windows and operational patterns
+
+These dashboards are **future extensions**, not completed claims in this repository.
+
+## Security notes
+
+- Passwords are bcrypt-hashed; database credentials and JWT secret are loaded from local environment settings.
+- SQL queries use parameterized placeholders.
+- Client-supplied listing text is inserted into the DOM using `textContent` rather than unsanitized HTML templates.
+- Authentication is required to submit or reserve listings; owners cannot reserve their own posts.
+- The original repository **historically committed configuration secrets**. Removing them from the latest tree does **not** erase earlier commits. Any real exposed database password and the old signing secret must be rotated, and repository history should be reviewed before production use.
+- Browser-local token storage is a demonstration trade-off and is vulnerable if an XSS exploit occurs; production systems should consider secure cookie-based sessions, CSRF protection, rate limiting, logging controls, TLS, CORS allowlists, and stronger security reviews.
+- Donor contact details are accessible on their own dashboard, not in the public API. A production pickup communication workflow would require additional work.
+
+## Repository structure
+
+```text
+frontend/             # HTML, CSS, vanilla JavaScript
+server.js             # Express routes and auth
+db.js                 # MySQL connection pool
+setupDatabase.js      # Schema setup (fresh database)
+test/auth.test.js     # HTTP API tests with mock database
+.env.example          # Safe configuration template
+README.md
+```
+
+## Known limitations
+
+The frontend is a demonstration, the pickup workflow is not complete, and a reservation does not automatically transmit pickup contact details. Existing installations with the old schema require a migration. Local/database integration testing and production deployment verification remain outstanding.
+
+**Maintainer:** Rama Ksibati · Computer Information Science portfolio

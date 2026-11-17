@@ -70,7 +70,9 @@ Requests with tokens must include `Authorization: Bearer <token>`. Signup requir
 
 ## Tests
 
-Run `npm test`. API tests use a mock database: no MySQL server is needed to exercise the authentication and basic reservation endpoints. These tests **do not** replace an integration test against MySQL, especially for concurrency and migration behavior.
+Run `npm run test:unit` for mocked API tests without MySQL. Run `npm run test:integration` against a disposable MySQL database after `npm run db:setup`; **this suite clears the test tables** and checks real signup/login, privacy, ownership, duplicate reservations, and concurrent reservation attempts.
+
+**No local installation required for online checks:** [GitHub Actions](https://github.com/RamaKsibati/Food-Bank-website/actions/workflows/api-tests.yml) starts a temporary MySQL 8 service and runs both test suites on each push or pull request. This tests the backend; it does not deploy an interactive website.
 
 ## Business and data opportunities
 
@@ -107,6 +109,6 @@ README.md
 
 ## Known limitations
 
-The frontend is a demonstration, the pickup workflow is not complete, and a reservation does not automatically transmit pickup contact details. Existing installations with the old schema require a migration. Local/database integration testing and production deployment verification remain outstanding.
+The frontend is a demonstration, the pickup workflow is not complete, and a reservation does not automatically transmit pickup contact details. Existing installations with the old schema require a migration. A temporary MySQL integration workflow is configured; check the latest GitHub Actions run for results. Real-browser end-to-end testing and production deployment verification remain outstanding.
 
 **Maintainer:** Rama Ksibati · Computer Information Science portfolio

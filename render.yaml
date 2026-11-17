@@ -1,0 +1,27 @@
+# Free demo hosting on Render; database is provisioned separately on TiDB Cloud Starter.
+# Never commit DB credentials or configure a paid instance for this portfolio demo.
+services:
+  - type: web
+    name: feed-dearborn-demo
+    runtime: node
+    plan: free
+    buildCommand: npm install --no-audit --no-fund
+    startCommand: npm run db:setup && npm start
+    healthCheckPath: /healthz
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: DB_SSL
+        value: "true"
+      - key: DB_HOST
+        sync: false
+      - key: DB_PORT
+        value: "4000"
+      - key: DB_NAME
+        sync: false
+      - key: DB_USER
+        sync: false
+      - key: DB_PASSWORD
+        sync: false
+      - key: JWT_SECRET
+        generateValue: true

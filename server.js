@@ -12,7 +12,9 @@ if (!process.env.JWT_SECRET || process.env.JWT_SECRET.length < 32) {
 }
 
 const app = express();
-app.use(cors());
+// The hosted UI and API are served from the same origin. Cross-origin requests
+// are only enabled in local development for a separately served frontend.
+app.use(cors({ origin: process.env.NODE_ENV === 'production' ? false : true }));
 app.use(express.json({ limit: '20kb' }));
 
 // Serve the web interface and API from the same origin in hosted deployments.

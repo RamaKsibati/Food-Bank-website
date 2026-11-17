@@ -1,0 +1,23 @@
+name: API tests
+on:
+  push:
+    branches: [main]
+  pull_request:
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+      - name: Install dependencies
+        run: npm install --no-audit --no-fund
+      - name: Syntax checks
+        run: |
+          node --check server.js
+          node --check db.js
+          node --check setupDatabase.js
+          node --check frontend/js/main.js
+      - name: API tests
+        run: npm test

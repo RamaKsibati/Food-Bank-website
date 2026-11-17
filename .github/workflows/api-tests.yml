@@ -1,23 +1,67 @@
-name: API tests
+name: API tests (unit and MySQL integration)
+
 on:
   push:
     branches: [main]
   pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
 jobs:
-  test:
+  unit:
+    name: Unit API tests and syntax
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
         with:
           node-version: '20'
-      - name: Install dependencies
+      - name: Install Node dependencies
         run: npm install --no-audit --no-fund
-      - name: Syntax checks
+      - name: Check JavaScript syntax
         run: |
           node --check server.js
           node --check db.js
           node --check setupDatabase.js
           node --check frontend/js/main.js
-      - name: API tests
-        run: npm test
+          node --check test/auth.test.js
+          node --check test/integration.test.js
+      - name: Run mocked API tests
+        run: npm run test:unit
+
+  mysql-integration:
+    name: Live MySQL integration tests
+    runs-on: ubuntu-latest
+    services:
+      mysql:
+        image: mysql:8.0
+        env:
+          MYSQL_ROOT_PASSWORD: github-actions-test-only
+          MYSQL_DATABASE: food_bank_test
+        ports:
+          - 3306:3306
+        options: >-
+          --health-cmd="mysqladmin ping -h 127.0.0.1 -uroot -pgithub-actions-test-only"
+          --health-interval=10s
+          --health-timeout=5s
+          --health-retries=12
+    env:
+      DB_HOST: 127.0.0.1
+      DB_PORT: '3306'
+      DB_USER: root
+      DB_PASSWORD: github-actions-test-only
+      DB_NAME: food_bank_test
+      JWT_SECRET: github-actions-integration-only-not-for-production-6d9f92aa
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+      - name: Install Node dependencies
+        run: npm install --no-audit --no-fund
+      - name: Create test database tables
+        run: npm run db:setup
+      - name: Run real database integration tests
+        run: npm run test:integration

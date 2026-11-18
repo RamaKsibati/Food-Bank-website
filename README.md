@@ -81,9 +81,25 @@ A unique `reservations.post_id` constraint prevents multiple reservations for th
 
 ## Interface tour
 
-The redesigned interface includes a landing page, searchable food feed, account registration/login, donor dashboard, donation analytics, and personal reservation history.
+The screenshots below show the actual deployed Feed Dearborn interface, with demo-only data. They are stored under `docs/screenshots/` once the screenshots are uploaded.
 
-**Screenshots:** Not yet included. To document the real deployed interface without exposing demonstration accounts, capture sanitized browser screenshots and add them to `docs/screenshots/` in a future update. Recommended images: homepage, food feed, dashboard analytics, and reservation history. Do not commit screenshots showing real contact details or credentials.
+### Homepage
+
+![Feed Dearborn homepage with community food-sharing hero](docs/screenshots/homepage.png)
+
+### Available food
+
+![Available food feed with search and reserve button](docs/screenshots/food-feed.png)
+
+### Personal analytics dashboard
+
+![Private donation analytics, metrics, and community impact](docs/screenshots/dashboard.png)
+
+### My reservations
+
+![My reservations page showing the empty state](docs/screenshots/reservations.png)
+
+> **Screenshot upload required:** The four PNGs must be added to `docs/screenshots/` on GitHub before the images above render. These are real screenshots provided by the project owner, not mockups. Do not upload screenshots containing real personal contact information or secrets.
 
 ## Free cloud demo (Render + TiDB Cloud Starter)
 

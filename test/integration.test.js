@@ -135,4 +135,44 @@ describe('Food Bank live MySQL integration', function () {
     const [rows] = await db.query('SELECT user_id FROM reservations WHERE post_id = ?', [id]);
     expect(rows).to.have.length(1);
   });
+  it('allows only the recipient to cancel, returning food to the feed', async () => {
+    const id = await createFood(donor, 'Cancel test rice');
+    const reserved = await request(app).put('/api/food_posts/' + id + '/reserved').set(recipient.header);
+    expect(reserved.status).to.equal(200);
+    const history = await request(app).get('/api/reservations').set(recipient.header);
+    const booking = history.body.find(row => row.post_id === id);
+    expect(booking).to.exist;
+    expect((await request(app).delete('/api/reservations/' + booking.reservation_id)).status).to.equal(401);
+    expect((await request(app).delete('/api/reservations/' + booking.reservation_id).set(secondRecipient.header)).status).to.equal(403);
+    expect((await request(app).delete('/api/reservations/' + booking.reservation_id).set(recipient.header)).status).to.equal(200);
+    const [rows] = await db.query('SELECT reserved FROM food_posts WHERE post_id = ?', [id]);
+    expect(rows[0].reserved).to.equal(0);
+    const feed = await request(app).get('/api/food_posts');
+    expect(feed.body.some(row => row.post_id === id)).to.equal(true);
+    expect((await request(app).delete('/api/reservations/' + booking.reservation_id).set(recipient.header)).status).to.equal(404);
+  });
+
+  it('only permits a donor to mark reserved food picked up; then prevents cancellation', async () => {
+    const id = await createFood(donor, 'Pickup test bread');
+    expect((await request(app).put('/api/food_posts/' + id + '/picked-up').set(donor.header)).status).to.equal(409);
+    expect((await request(app).put('/api/food_posts/' + id + '/picked-up').set(recipient.header)).status).to.equal(403);
+    expect((await request(app).put('/api/food_posts/' + id + '/reserved').set(recipient.header)).status).to.equal(200);
+    expect((await request(app).put('/api/food_posts/' + id + '/picked-up').set(donor.header)).status).to.equal(200);
+    const history = await request(app).get('/api/reservations').set(recipient.header);
+    const booking = history.body.find(row => row.post_id === id);
+    expect(Number(booking.picked_up)).to.equal(1);
+    expect((await request(app).delete('/api/reservations/' + booking.reservation_id).set(recipient.header)).status).to.equal(409);
+    expect((await request(app).put('/api/food_posts/' + id + '/picked-up').set(donor.header)).status).to.equal(409);
+  });
+
+  it('permits a donor to remove an unreserved post without affecting reservations', async () => {
+    const id = await createFood(donor, 'Removable test item');
+    expect((await request(app).delete('/api/food_posts/' + id).set(secondRecipient.header)).status).to.equal(403);
+    expect((await request(app).delete('/api/food_posts/' + id).set(donor.header)).status).to.equal(200);
+    expect((await request(app).delete('/api/food_posts/' + id).set(donor.header)).status).to.equal(404);
+    const reservedId = await createFood(donor, 'Protected test item');
+    expect((await request(app).put('/api/food_posts/' + reservedId + '/reserved').set(recipient.header)).status).to.equal(200);
+    expect((await request(app).delete('/api/food_posts/' + reservedId).set(donor.header)).status).to.equal(409);
+  });
+
 });

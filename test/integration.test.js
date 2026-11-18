@@ -101,6 +101,16 @@ describe('Food Bank live MySQL integration', function () {
     const reserved = await request(app).put('/api/food_posts/' + id + '/reserved').set(recipient.header);
     expect(reserved.status, JSON.stringify(reserved.body)).to.equal(200);
 
+    const history = await request(app).get('/api/reservations').set(recipient.header);
+    expect(history.status).to.equal(200);
+    expect(history.body.some(row => row.post_id === id && row.food_type === 'Fruit')).to.equal(true);
+    expect(history.body.find(row => row.post_id === id)).not.to.have.property('contact_info');
+    const otherHistory = await request(app).get('/api/reservations').set(secondRecipient.header);
+    expect(otherHistory.status).to.equal(200);
+    expect(otherHistory.body).to.have.length(0);
+    const anon = await request(app).get('/api/reservations');
+    expect(anon.status).to.equal(401);
+
     const duplicate = await request(app).put('/api/food_posts/' + id + '/reserved').set(secondRecipient.header);
     expect(duplicate.status).to.equal(409);
 

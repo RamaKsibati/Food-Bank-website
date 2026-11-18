@@ -87,7 +87,7 @@ app.post('/api/login', async (req, res) => {
 app.get('/api/user_food_posts', authenticateToken, async (req, res) => {
   try {
     const [rows] = await db.query(
-      'SELECT post_id, food_type, quantity, pickup_time, contact_info, reserved FROM food_posts WHERE user_id = ? ORDER BY pickup_time',
+      'SELECT post_id, food_type, quantity, pickup_time, contact_info, reserved, picked_up FROM food_posts WHERE user_id = ? ORDER BY pickup_time',
       [req.user.userId]
     );
     return res.json(rows);
@@ -103,7 +103,7 @@ app.get('/api/reservations', authenticateToken, async (req, res) => {
   try {
     const [rows] = await db.query(
       `SELECT r.reservation_id, r.post_id, r.reserved_at,
-              p.food_type, p.quantity, p.pickup_time
+              p.food_type, p.quantity, p.pickup_time, p.picked_up
        FROM reservations AS r
        INNER JOIN food_posts AS p ON p.post_id = r.post_id
        WHERE r.user_id = ?
@@ -140,7 +140,7 @@ app.post('/api/food_posts', authenticateToken, async (req, res) => {
 app.get('/api/food_posts', async (req, res) => {
   try {
     const [rows] = await db.query(
-      'SELECT post_id, food_type, quantity, pickup_time, reserved FROM food_posts WHERE reserved = FALSE ORDER BY pickup_time'
+      'SELECT post_id, food_type, quantity, pickup_time, reserved FROM food_posts WHERE reserved = FALSE AND picked_up = FALSE ORDER BY pickup_time'
     );
     return res.json(rows);
   } catch (err) {
@@ -159,7 +159,7 @@ async function reserveFood(req, res) {
     connection = await db.getConnection();
     await connection.beginTransaction();
     const [posts] = await connection.query(
-      'SELECT post_id, user_id, reserved FROM food_posts WHERE post_id = ? FOR UPDATE', [id]
+      'SELECT post_id, user_id, reserved, picked_up FROM food_posts WHERE post_id = ? FOR UPDATE', [id]
     );
     if (!posts.length) {
       await connection.rollback();
@@ -168,6 +168,10 @@ async function reserveFood(req, res) {
     if (Number(posts[0].user_id) === req.user.userId) {
       await connection.rollback();
       return res.status(403).json({ message: 'You cannot reserve your own post' });
+    }
+    if (posts[0].picked_up) {
+      await connection.rollback();
+      return res.status(409).json({ message: 'This food has already been picked up' });
     }
     if (posts[0].reserved) {
       await connection.rollback();
@@ -187,6 +191,76 @@ async function reserveFood(req, res) {
     if (connection) connection.release();
   }
 }
+
+// A recipient may cancel their own reservation before the donor marks pickup complete.
+// Lock the parent food row first, as in the reservation operation.
+app.delete('/api/reservations/:id', authenticateToken, async (req, res) => {
+  if (!validId(req.params.id)) return res.status(400).json({ message: 'Invalid reservation ID' });
+  let connection;
+  try {
+    connection = await db.getConnection();
+    await connection.beginTransaction();
+    const [reservations] = await connection.query(
+      'SELECT reservation_id, post_id, user_id FROM reservations WHERE reservation_id = ?', [req.params.id]
+    );
+    if (!reservations.length) { await connection.rollback(); return res.status(404).json({ message: 'Reservation not found' }); }
+    if (Number(reservations[0].user_id) !== req.user.userId) {
+      await connection.rollback();
+      return res.status(403).json({ message: 'You can only cancel your own reservations' });
+    }
+    const postId = reservations[0].post_id;
+    const [posts] = await connection.query('SELECT post_id, picked_up FROM food_posts WHERE post_id = ? FOR UPDATE', [postId]);
+    if (!posts.length) { await connection.rollback(); return res.status(404).json({ message: 'Food post not found' }); }
+    if (posts[0].picked_up) { await connection.rollback(); return res.status(409).json({ message: 'Picked-up food cannot be cancelled' }); }
+    const [deleted] = await connection.query('DELETE FROM reservations WHERE reservation_id = ? AND user_id = ?', [req.params.id, req.user.userId]);
+    if (!deleted.affectedRows) { await connection.rollback(); return res.status(409).json({ message: 'Reservation has changed. Reload and retry.' }); }
+    await connection.query('UPDATE food_posts SET reserved = FALSE WHERE post_id = ?', [postId]);
+    await connection.commit();
+    return res.json({ message: 'Reservation cancelled; food is available again' });
+  } catch (err) {
+    if (connection) await connection.rollback().catch(() => {});
+    console.error('Cancellation failed:', err.code || err.message);
+    return res.status(500).json({ message: 'Internal server error' });
+  } finally { if (connection) connection.release(); }
+});
+
+// A donor can finalize an existing reservation, but cannot finalize unreserved food.
+app.put('/api/food_posts/:id/picked-up', authenticateToken, async (req, res) => {
+  if (!validId(req.params.id)) return res.status(400).json({ message: 'Invalid food post ID' });
+  try {
+    const [result] = await db.query(
+      'UPDATE food_posts SET picked_up = TRUE WHERE post_id = ? AND user_id = ? AND reserved = TRUE AND picked_up = FALSE',
+      [req.params.id, req.user.userId]
+    );
+    if (result.affectedRows) return res.json({ message: 'Food marked as picked up' });
+    const [posts] = await db.query('SELECT user_id, reserved, picked_up FROM food_posts WHERE post_id = ?', [req.params.id]);
+    if (!posts.length) return res.status(404).json({ message: 'Food post not found' });
+    if (Number(posts[0].user_id) !== req.user.userId) return res.status(403).json({ message: 'Only the donor can update this post' });
+    return res.status(409).json({ message: posts[0].picked_up ? 'Already marked as picked up' : 'Food must be reserved first' });
+  } catch (err) {
+    console.error('Pickup update failed:', err.code || err.message);
+    return res.status(500).json({ message: 'Internal server error' });
+  }
+});
+
+// Donors may remove listings that were never reserved. Do not delete reservation history.
+app.delete('/api/food_posts/:id', authenticateToken, async (req, res) => {
+  if (!validId(req.params.id)) return res.status(400).json({ message: 'Invalid food post ID' });
+  try {
+    const [result] = await db.query(
+      'DELETE FROM food_posts WHERE post_id = ? AND user_id = ? AND reserved = FALSE AND picked_up = FALSE',
+      [req.params.id, req.user.userId]
+    );
+    if (result.affectedRows) return res.json({ message: 'Unreserved listing removed' });
+    const [posts] = await db.query('SELECT user_id, reserved, picked_up FROM food_posts WHERE post_id = ?', [req.params.id]);
+    if (!posts.length) return res.status(404).json({ message: 'Food post not found' });
+    if (Number(posts[0].user_id) !== req.user.userId) return res.status(403).json({ message: 'Only the donor can remove this post' });
+    return res.status(409).json({ message: 'Reserved or picked-up posts cannot be removed' });
+  } catch (err) {
+    console.error('Deleting post failed:', err.code || err.message);
+    return res.status(500).json({ message: 'Internal server error' });
+  }
+});
 
 app.put('/api/food_posts/:id/reserved', authenticateToken, reserveFood);
 app.put('/api/food_posts/:id/reserve', authenticateToken, reserveFood);

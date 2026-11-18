@@ -16,6 +16,7 @@ const statements = [
     pickup_time DATETIME NOT NULL,
     contact_info VARCHAR(100) NOT NULL,
     reserved BOOLEAN NOT NULL DEFAULT FALSE,
+    picked_up BOOLEAN NOT NULL DEFAULT FALSE,
     CONSTRAINT fk_food_owner FOREIGN KEY (user_id) REFERENCES users(user_id)
   ) ENGINE=InnoDB`,
   `CREATE TABLE IF NOT EXISTS reservations (
@@ -31,6 +32,11 @@ const statements = [
 async function main() {
   try {
     for (const sql of statements) await pool.query(sql);
+    // Non-destructive migration for existing demo deployments.
+    const [columns] = await pool.query("SHOW COLUMNS FROM food_posts LIKE 'picked_up'");
+    if (!columns.length) {
+      await pool.query('ALTER TABLE food_posts ADD COLUMN picked_up BOOLEAN NOT NULL DEFAULT FALSE');
+    }
     console.log('Database tables are ready.');
   } finally {
     await pool.end();

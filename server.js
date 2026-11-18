@@ -84,6 +84,65 @@ app.post('/api/login', async (req, res) => {
   }
 });
 
+// Private, live donor/recipient metrics. Counts come from SQL, not demo values.
+// A listing is mutually exclusive: available, reserved-awaiting-pickup, or picked up.
+app.get('/api/analytics', authenticateToken, async (req, res) => {
+  try {
+    const userId = req.user.userId;
+    const [totals] = await db.query(
+      `SELECT COUNT(*) AS total_posts,
+              COALESCE(SUM(CASE WHEN reserved = FALSE AND picked_up = FALSE THEN 1 ELSE 0 END), 0) AS available_posts,
+              COALESCE(SUM(CASE WHEN reserved = TRUE AND picked_up = FALSE THEN 1 ELSE 0 END), 0) AS reserved_posts,
+              COALESCE(SUM(CASE WHEN picked_up = TRUE THEN 1 ELSE 0 END), 0) AS picked_up_posts,
+              COALESCE(SUM(quantity), 0) AS total_units,
+              COALESCE(SUM(CASE WHEN picked_up = TRUE THEN quantity ELSE 0 END), 0) AS collected_units
+       FROM food_posts WHERE user_id = ?`,
+      [userId]
+    );
+    const [categories] = await db.query(
+      `SELECT food_type, COUNT(*) AS post_count
+       FROM food_posts WHERE user_id = ?
+       GROUP BY food_type
+       ORDER BY post_count DESC, food_type ASC
+       LIMIT 6`,
+      [userId]
+    );
+    const [received] = await db.query(
+      `SELECT COUNT(*) AS total_reservations,
+              COALESCE(SUM(CASE WHEN p.picked_up = TRUE THEN 1 ELSE 0 END), 0) AS completed_reservations
+       FROM reservations AS r
+       INNER JOIN food_posts AS p ON p.post_id = r.post_id
+       WHERE r.user_id = ?`,
+      [userId]
+    );
+    // MySQL and TiDB can return aggregate values as strings.
+    const asNumber = value => Number(value || 0);
+    const donor = totals[0] || {};
+    const recipient = received[0] || {};
+    return res.json({
+      donor: {
+        totalPosts: asNumber(donor.total_posts),
+        available: asNumber(donor.available_posts),
+        reserved: asNumber(donor.reserved_posts),
+        pickedUp: asNumber(donor.picked_up_posts),
+        unitsListed: asNumber(donor.total_units),
+        unitsCollected: asNumber(donor.collected_units)
+      },
+      recipient: {
+        reservations: asNumber(recipient.total_reservations),
+        pickedUp: asNumber(recipient.completed_reservations)
+      },
+      categories: categories.map(row => ({
+        name: row.food_type,
+        count: asNumber(row.post_count)
+      }))
+    });
+  } catch (err) {
+    console.error('Analytics query failed:', err.code || err.message);
+    return res.status(500).json({ message: 'Internal server error' });
+  }
+});
+
 app.get('/api/user_food_posts', authenticateToken, async (req, res) => {
   try {
     const [rows] = await db.query(

@@ -41,7 +41,8 @@ function formatPickup(value) {
 
 function renderPost(post, container, allowReserve = false) {
   const item = makeElement('article', undefined, 'food-post');
-  const badge = makeElement('span', post.reserved ? 'Reserved' : 'Available', post.reserved ? 'status status-reserved' : 'status');
+  const state = post.picked_up ? 'Picked up' : post.reserved ? 'Reserved' : 'Available';
+  const badge = makeElement('span', state, post.reserved ? 'status status-reserved' : 'status');
   item.append(
     badge,
     makeElement('h3', post.food_type),
@@ -98,7 +99,20 @@ async function loadUserFoodPosts() {
     const posts = await apiRequest('/api/user_food_posts', { headers: authHeaders() });
     container.replaceChildren();
     posts.forEach(post => {
-      renderPost(post, container);
+      const card = makeElement('div', undefined, 'managed-post');
+      renderPost(post, card);
+      const actions = makeElement('div', undefined, 'manage-actions');
+      if (post.reserved && !post.picked_up) {
+        const complete = makeElement('button', 'Mark as picked up');
+        complete.addEventListener('click', () => updateDonation(post.post_id, 'pickup', complete));
+        actions.append(complete);
+      } else if (!post.reserved && !post.picked_up) {
+        const remove = makeElement('button', 'Remove listing', 'danger-button');
+        remove.addEventListener('click', () => updateDonation(post.post_id, 'delete', remove));
+        actions.append(remove);
+      }
+      card.append(actions);
+      container.append(card);
     });
     if (!posts.length) container.append(makeElement('p', 'You have not posted food yet.'));
   } catch (error) {
@@ -130,12 +144,42 @@ async function loadReservations() {
         makeElement('p', `Quantity: ${reservation.quantity}`),
         makeElement('p', `Pickup: ${formatPickup(reservation.pickup_time)}`),
         makeElement('p', `Reserved on: ${formatPickup(reservation.reserved_at)}`),
-        makeElement('p', 'Status: Reserved')
+        makeElement('p', reservation.picked_up ? 'Status: Picked up' : 'Status: Reserved')
       );
+      if (!reservation.picked_up) {
+        const cancel = makeElement('button', 'Cancel reservation', 'danger-button');
+        cancel.type = 'button';
+        cancel.addEventListener('click', async () => {
+          if (!window.confirm('Cancel this reservation? The food will become available to others.')) return;
+          cancel.disabled = true;
+          try {
+            await apiRequest(`/api/reservations/${encodeURIComponent(reservation.reservation_id)}`, {
+              method: 'DELETE', headers: authHeaders()
+            });
+            await loadReservations();
+          } catch (error) { alert(error.message); cancel.disabled = false; }
+        });
+        item.append(cancel);
+      }
       container.append(item);
     });
   } catch (error) {
     container.replaceChildren(makeElement('p', error.message));
+  }
+}
+
+async function updateDonation(postId, action, button) {
+  const pickup = action === 'pickup';
+  if (!window.confirm(pickup ? 'Confirm that this reserved food was picked up?' : 'Remove this unreserved listing?')) return;
+  button.disabled = true;
+  try {
+    await apiRequest(`/api/food_posts/${encodeURIComponent(postId)}${pickup ? '/picked-up' : ''}`, {
+      method: pickup ? 'PUT' : 'DELETE', headers: authHeaders()
+    });
+    await loadUserFoodPosts();
+  } catch (error) {
+    alert(error.message);
+    button.disabled = false;
   }
 }
 

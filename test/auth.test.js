@@ -12,6 +12,26 @@ let locked = false;
 
 const mockDb = {
   query: async (sql, params = []) => {
+    if (sql.includes('COUNT(*) AS total_posts') && sql.includes('FROM food_posts')) {
+      const own = posts.filter(p => p.user_id === params[0]);
+      return [[{
+        total_posts: own.length,
+        available_posts: own.filter(p => !p.reserved && !p.picked_up).length,
+        reserved_posts: own.filter(p => p.reserved && !p.picked_up).length,
+        picked_up_posts: own.filter(p => p.picked_up).length,
+        total_units: own.reduce((sum, p) => sum + p.quantity, 0),
+        collected_units: own.filter(p => p.picked_up).reduce((sum, p) => sum + p.quantity, 0)
+      }]];
+    }
+    if (sql.includes('GROUP BY food_type')) {
+      const counts = new Map();
+      posts.filter(p => p.user_id === params[0]).forEach(p => counts.set(p.food_type, (counts.get(p.food_type) || 0) + 1));
+      return [[...counts].sort((a,b) => b[1] - a[1] || a[0].localeCompare(b[0])).slice(0,6).map(([food_type, post_count]) => ({food_type, post_count}))];
+    }
+    if (sql.includes('COUNT(*) AS total_reservations')) {
+      const own = reservations.filter(r => r.user_id === params[0]);
+      return [[{total_reservations: own.length, completed_reservations: own.filter(r => posts.find(p => p.post_id === r.post_id)?.picked_up).length}]];
+    }
     if (sql.startsWith('INSERT INTO users')) {
       if (users.some(u => u.email === params[1])) {
         const error = new Error('Duplicate');
@@ -149,4 +169,29 @@ describe('Food Bank API', () => {
     const feed = await request(app).get('/api/food_posts');
     expect(feed.body[0]).not.to.have.property('contact_info');
   });
+  it('returns real per-user analytics without exposing other accounts or contacts', async () => {
+    const donor = { Authorization: 'Bearer ' + tokenFor(1) };
+    const recipient = { Authorization: 'Bearer ' + tokenFor(2) };
+    expect((await request(app).get('/api/analytics')).status).to.equal(401);
+    const empty = await request(app).get('/api/analytics').set(donor);
+    expect(empty.status).to.equal(200);
+    expect(empty.body.donor.totalPosts).to.equal(0);
+    expect(empty.body.categories).to.deep.equal([]);
+    const created = await request(app).post('/api/food_posts').set(donor).send({
+      food_type: 'Rice', quantity: 5, pickup_time: '2030-05-01T12:00', contact_info: 'Private fictional contact'
+    });
+    expect(created.status).to.equal(201);
+    const initial = await request(app).get('/api/analytics').set(donor);
+    expect(initial.body.donor).to.include({totalPosts: 1, available: 1, reserved: 0, pickedUp: 0, unitsListed: 5});
+    expect(initial.body.categories).to.deep.equal([{name: 'Rice', count: 1}]);
+    expect(JSON.stringify(initial.body)).not.to.include('Private fictional contact');
+    const reserved = await request(app).put('/api/food_posts/' + created.body.postId + '/reserved').set(recipient);
+    expect(reserved.status).to.equal(200);
+    const updated = await request(app).get('/api/analytics').set(donor);
+    expect(updated.body.donor).to.include({totalPosts: 1, available: 0, reserved: 1});
+    const recipientMetrics = await request(app).get('/api/analytics').set(recipient);
+    expect(recipientMetrics.body.donor.totalPosts).to.equal(0);
+    expect(recipientMetrics.body.recipient).to.include({reservations: 1, pickedUp: 0});
+  });
+
 });

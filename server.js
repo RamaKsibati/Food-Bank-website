@@ -97,6 +97,26 @@ app.get('/api/user_food_posts', authenticateToken, async (req, res) => {
   }
 });
 
+// Only the authenticated recipient can see their reservation history.
+// Never expose a donor's private contact details through this endpoint.
+app.get('/api/reservations', authenticateToken, async (req, res) => {
+  try {
+    const [rows] = await db.query(
+      `SELECT r.reservation_id, r.post_id, r.reserved_at,
+              p.food_type, p.quantity, p.pickup_time
+       FROM reservations AS r
+       INNER JOIN food_posts AS p ON p.post_id = r.post_id
+       WHERE r.user_id = ?
+       ORDER BY r.reserved_at DESC, r.reservation_id DESC`,
+      [req.user.userId]
+    );
+    return res.json(rows);
+  } catch (err) {
+    console.error('Listing reservations failed:', err.code || err.message);
+    return res.status(500).json({ message: 'Internal server error' });
+  }
+});
+
 app.post('/api/food_posts', authenticateToken, async (req, res) => {
   const { food_type, quantity, pickup_time, contact_info } = req.body || {};
   if (!validText(food_type, 100) || !Number.isInteger(Number(quantity)) ||

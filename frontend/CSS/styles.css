@@ -100,3 +100,7 @@ footer{border-top:1px solid var(--border);background:#f0f3eb;padding:27px 0;colo
 @media(max-width:880px){.hero-grid{grid-template-columns:1fr;gap:35px;padding:55px 0}.hero-photo{height:320px}.dashboard-grid{grid-template-columns:1fr}.steps,.feature-grid,#food-feed,#reservation-list{grid-template-columns:repeat(2,minmax(0,1fr))}.nav-inner{align-items:start;flex-direction:column;justify-content:center;padding:14px 0;gap:10px}.nav-links{gap:14px}}
 @media(max-width:620px){.container{width:min(100% - 30px,1150px)}h1{font-size:40px}.hero-photo{height:255px}.steps,.feature-grid,#food-feed,#reservation-list{grid-template-columns:1fr}.section{padding:52px 0}.section-head,.cta-band,.page-heading{align-items:start;flex-direction:column}.cta-band{padding:29px}.nav-links{gap:9px 15px}.nav-links a{font-size:12px}.brand{font-size:20px}.page-banner{padding:39px 0}.page-content{padding:32px 0 56px}.auth-card{padding:27px 22px}.search-bar{flex-direction:column}.food-post{padding:22px}}
 @media(prefers-reduced-motion:reduce){html{scroll-behavior:auto}.button{transition:none}}
+
+/* Dashboard cards stay readable within the narrower right column. */
+.dashboard-grid #food-feed{grid-template-columns:1fr}
+.dashboard-grid .food-post{box-shadow:none;background:#fafcf8}

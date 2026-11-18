@@ -34,6 +34,13 @@ const mockDb = {
       posts.push(post);
       return [{ insertId: post.post_id }];
     }
+    if (sql.includes('FROM reservations AS r')) {
+      return [reservations.filter(r => r.user_id === params[0]).map(r => {
+        const post = posts.find(p => p.post_id === r.post_id);
+        return { reservation_id: r.post_id, post_id: r.post_id, reserved_at: '2026-11-17T12:00:00Z',
+          food_type: post.food_type, quantity: post.quantity, pickup_time: post.pickup_time };
+      })];
+    }
     if (sql.includes('FROM food_posts WHERE user_id = ?')) {
       return [posts.filter(p => p.user_id === params[0])];
     }
@@ -119,6 +126,14 @@ describe('Food Bank API', () => {
     const reserved = await request(app).put('/api/food_posts/' + id + '/reserved').set(recipient);
     expect(reserved.status).to.equal(200);
     expect(reservations.length).to.equal(1);
+    const history = await request(app).get('/api/reservations').set(recipient);
+    expect(history.status).to.equal(200);
+    expect(history.body).to.have.length(1);
+    expect(history.body[0].food_type).to.equal('Bread');
+    expect(history.body[0]).not.to.have.property('contact_info');
+    const otherHistory = await request(app).get('/api/reservations').set(otherRecipient);
+    expect(otherHistory.body).to.have.length(0);
+    expect((await request(app).get('/api/reservations')).status).to.equal(401);
     const again = await request(app).put('/api/food_posts/' + id + '/reserved').set(otherRecipient);
     expect(again.status).to.equal(409);
     expect(reservations.length).to.equal(1);

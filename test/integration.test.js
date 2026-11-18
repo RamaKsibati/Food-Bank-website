@@ -175,4 +175,35 @@ describe('Food Bank live MySQL integration', function () {
     expect((await request(app).delete('/api/food_posts/' + reservedId).set(donor.header)).status).to.equal(409);
   });
 
+  it('reports scoped donor statistics and recipient pickups using SQL aggregates', async () => {
+    const before = await request(app).get('/api/analytics').set(donor.header);
+    expect(before.status).to.equal(200);
+    const postId = await createFood(donor, 'Analytics example squash');
+    const initial = await request(app).get('/api/analytics').set(donor.header);
+    expect(initial.status).to.equal(200);
+    expect(initial.body.donor.totalPosts).to.equal(before.body.donor.totalPosts + 1);
+    expect(initial.body.donor.available).to.equal(before.body.donor.available + 1);
+    expect(initial.body.donor.unitsListed).to.equal(before.body.donor.unitsListed + 4);
+    expect(initial.body.categories.some(category => category.name === 'Analytics example squash' && category.count === 1)).to.equal(true);
+    expect(initial.body).not.to.have.property('contact_info');
+
+    const other = await request(app).get('/api/analytics').set(secondRecipient.header);
+    expect(other.status).to.equal(200);
+    expect(other.body.donor.totalPosts).to.equal(0);
+    expect(other.body.categories.some(category => category.name === 'Analytics example squash')).to.equal(false);
+    expect((await request(app).get('/api/analytics')).status).to.equal(401);
+
+    expect((await request(app).put('/api/food_posts/' + postId + '/reserved').set(recipient.header)).status).to.equal(200);
+    const afterReservation = await request(app).get('/api/analytics').set(donor.header);
+    expect(afterReservation.body.donor.available).to.equal(initial.body.donor.available - 1);
+    expect(afterReservation.body.donor.reserved).to.equal(initial.body.donor.reserved + 1);
+    const beforePickup = await request(app).get('/api/analytics').set(recipient.header);
+    expect((await request(app).put('/api/food_posts/' + postId + '/picked-up').set(donor.header)).status).to.equal(200);
+    const afterPickup = await request(app).get('/api/analytics').set(donor.header);
+    expect(afterPickup.body.donor.pickedUp).to.equal(afterReservation.body.donor.pickedUp + 1);
+    expect(afterPickup.body.donor.unitsCollected).to.equal(afterReservation.body.donor.unitsCollected + 4);
+    const recipientResult = await request(app).get('/api/analytics').set(recipient.header);
+    expect(recipientResult.body.recipient.pickedUp).to.equal(beforePickup.body.recipient.pickedUp + 1);
+  });
+
 });

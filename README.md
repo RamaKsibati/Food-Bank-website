@@ -1,10 +1,33 @@
-# Feed Dearborn — Food Donation & Reservation Platform
+# Feed Dearborn — Food Sharing Platform
 
-**Node.js · Express · MySQL · JavaScript · REST API · Automated Tests**
+**Full-stack portfolio project | Node.js · Express · MySQL-compatible TiDB · Vanilla JavaScript · Render**
 
-A student full-stack project connecting donors with people seeking food. Users can sign up, publish food listings, browse availability, and reserve a listing. This repository demonstrates relational schema design, authentication, authorization, defensive API validation, and transaction-safe reservation logic.
+[**Live website**](https://feed-dearborn-demo-vzw2.onrender.com) · [**Donation dashboard**](https://feed-dearborn-demo-vzw2.onrender.com/dashboared.html) · [**Automated tests**](https://github.com/RamaKsibati/Food-Bank-website/actions/workflows/api-tests.yml)
 
-> **Project status:** Live portfolio demonstration on Render with a MySQL-compatible TiDB Cloud database. GitHub Actions tests exercise the backend with a disposable MySQL instance; browser-level and production-security verification are ongoing. This is not a production food assistance service.
+Feed Dearborn is a responsive food-sharing demonstration that helps people list surplus food, discover available donations, reserve a listing, and keep track of pickup status. It includes authenticated account-level analytics using SQL rather than hardcoded metrics.
+
+> **Demo only.** This is a personal software-engineering portfolio project, **not an operating food-assistance service**. Use fictional accounts, contact details, and listings. On the free hosting tier, the first page load may be slow after inactivity.
+
+## Project at a glance
+
+| Area | Implementation |
+|---|---|
+| Frontend | Responsive HTML, CSS, and vanilla JavaScript |
+| Backend | Express REST API on Node.js |
+| Data | Relational `users`, `food_posts`, and `reservations` tables; MySQL-compatible TiDB Cloud |
+| Security | Password hashing with bcrypt, signed JWT authentication, owner/recipient authorization, parameterized SQL |
+| Reservation integrity | InnoDB transactions, row locking, uniqueness constraints |
+| Analytics | Private SQL aggregation, donation status cards, most-listed food chart |
+| Hosting | Render Free service; same-origin frontend and API |
+| Quality | Mocha, Chai, Supertest; GitHub Actions unit and temporary-MySQL integration tests |
+
+## Try the demonstration
+
+1. Sign up with a **fictional** donor account and create a food listing from the dashboard.
+2. Sign out, create a second fictional account, and reserve the listing from **Find food**.
+3. Open **My reservations** to view the reservation or cancel it before pickup.
+4. Sign in as the donor to confirm pickup in **Dashboard** and explore the analytics cards.
+5. Note that donors cannot reserve their own food and cannot delete a reserved listing.
 
 ## Features
 
@@ -20,18 +43,31 @@ A student full-stack project connecting donors with people seeking food. Users c
 
 ## Architecture
 
-```text
-Browser (HTML/CSS/JavaScript)
-     |
-     | HTTP /api/*
-     v
-Express API + JWT authentication
-     |
-     | parameterized SQL / transactions
-     v
-MySQL
-  users ─── food_posts ─── reservations
+This is a single hosted web application: the same Express service serves the static frontend and the authenticated API. Database access stays on the server.
+
+```mermaid
+flowchart TD
+  A["Browser: responsive HTML / CSS / JS"] -->|HTTPS| B["Render: Node.js + Express"]
+  B --> C["JWT authentication & authorization"]
+  C --> D["Food / Reservation / Analytics REST endpoints"]
+  D -->|Parameterized SQL + transactions| E[("TiDB Cloud: MySQL-compatible")]
+  E --> F["users"]
+  E --> G["food_posts"]
+  E --> H["reservations"]
+  I["GitHub Actions: unit + integration tests"] -.-> B
 ```
+
+### Reservation lifecycle
+
+```mermaid
+flowchart LR
+  A["Available listing"] -->|Recipient reserves| B["Reserved"]
+  B -->|Recipient cancels| A
+  B -->|Donor confirms collection| C["Picked up"]
+  A -->|Donor removes listing| D["Removed"]
+```
+
+The public food feed excludes donor contact details. The private dashboard and analytics filter queries using the authenticated user ID. A listing can be reserved only once; picked-up listings cannot be canceled or offered again.
 
 ### Data model
 
@@ -42,6 +78,12 @@ MySQL
 | `reservations` | `reservation_id` PK, unique `post_id` FK, `user_id` FK | Which account reserved which post |
 
 A unique `reservations.post_id` constraint prevents multiple reservations for the same listing. The reservation and cancellation endpoints lock the food row with `SELECT ... FOR UPDATE` to keep booking state consistent. The pickup state is tracked in `food_posts.picked_up`; existing databases gain this column through a non-destructive migration when `npm run db:setup` runs.
+
+## Interface tour
+
+The redesigned interface includes a landing page, searchable food feed, account registration/login, donor dashboard, donation analytics, and personal reservation history.
+
+**Screenshots:** Not yet included. To document the real deployed interface without exposing demonstration accounts, capture sanitized browser screenshots and add them to `docs/screenshots/` in a future update. Recommended images: homepage, food feed, dashboard analytics, and reservation history. Do not commit screenshots showing real contact details or credentials.
 
 ## Free cloud demo (Render + TiDB Cloud Starter)
 
@@ -75,7 +117,7 @@ A unique `reservations.post_id` constraint prevents multiple reservations for th
 5. Run `npm start` to serve the API at `http://localhost:3000`.
 6. Serve the `frontend/` directory with a local static web server (for example `python -m http.server 8000 --directory frontend`) and open `http://localhost:8000`.
 
-The frontend calls `http://localhost:3000` by default. Configure `window.FOOD_API_BASE` before loading `frontend/js/main.js` to point to another API base if required. CORS is enabled for local development and disabled for cross-origin browser requests when `NODE_ENV=production`; the hosted frontend and API share one origin.
+For the simplest local setup, open the frontend at `http://localhost:3000` from the Express server; both the pages and the API then share one origin. If you serve the frontend separately, configure `window.FOOD_API_BASE` before loading `frontend/js/main.js` to point to your backend. CORS is enabled for local development and disabled for cross-origin browser requests when `NODE_ENV=production`; the hosted frontend and API share one origin.
 
 ## API overview
 
@@ -130,6 +172,6 @@ README.md
 
 ## Known limitations
 
-The frontend is a demonstration, the pickup workflow is not complete, and a reservation does not automatically transmit pickup contact details. A non-destructive schema update adds the pickup flag to existing installations when setup runs. Other incompatible legacy schemas still require a dedicated migration. Automated MySQL integration checks run on GitHub Actions; hosted TiDB compatibility and browser testing must still be verified. Real-browser end-to-end testing and production deployment verification remain outstanding.
+The frontend is a demonstration and a reservation does not automatically transmit pickup contact details. A non-destructive schema update adds the pickup flag to existing installations when setup runs. Other incompatible legacy schemas still require a dedicated migration. Automated MySQL integration checks run on GitHub Actions; hosted TiDB compatibility and browser testing must still be verified. Production-level security review and automated real-browser end-to-end testing remain outstanding. Render has reported the analytics build as live.
 
-**Maintainer:** Rama Ksibati · Computer Information Science portfolio
+**Project owner:** Rama Ksibati · B.S. Computer Information Science

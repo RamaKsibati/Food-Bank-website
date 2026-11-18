@@ -4,7 +4,7 @@
 
 A student full-stack project connecting donors with people seeking food. Users can sign up, publish food listings, browse availability, and reserve a listing. This repository demonstrates relational schema design, authentication, authorization, defensive API validation, and transaction-safe reservation logic.
 
-> **Project status:** Portfolio-ready documentation and security-focused refactor. End-to-end execution against a live MySQL instance has not yet been independently verified. This is a student demonstration, not a production food assistance service.
+> **Project status:** Live portfolio demonstration on Render with a MySQL-compatible TiDB Cloud database. GitHub Actions tests exercise the backend with a disposable MySQL instance; browser-level and production-security verification are ongoing. This is not a production food assistance service.
 
 ## Features
 
@@ -13,6 +13,7 @@ A student full-stack project connecting donors with people seeking food. Users c
 - Public listings show available food **without publishing donors' contact details**
 - A logged-in recipient can reserve a post owned by someone else, view their reservations, and cancel before pickup
 - Donors can remove unreserved listings and mark reserved listings as picked up
+- Private donation analytics dashboard with SQL-backed totals, available/reserved/picked-up counts, top listed foods, and personal reservation/pickup statistics
 - Transaction and row-level locking prevent two simultaneous reservations of the same post
 - Duplicate registrations, invalid requests, nonexistent listings, and conflicts return meaningful HTTP statuses
 - Automated API tests for registration, login, authorization, feed privacy, and reservation conflicts
@@ -61,7 +62,7 @@ A unique `reservations.post_id` constraint prevents multiple reservations for th
 4. Let Render deploy. The startup command `npm run db:setup && npm start` initializes new tables and starts Express. The website and API use the **same public HTTPS URL**; `/healthz` should return `{"status":"ok"}`.
 5. In the demo website, use **fictional** donor/recipient accounts and contact details to test a listing and reservation. **Do not enter real personal information**; this is a student demonstration, not a live food-assistance service.
 
-**Deployment status:** The repository is prepared for deployment; it is **not yet deployed** until the accounts are connected, a free TiDB Starter instance is configured and Render reports a successful deploy. The existing automated GitHub Actions integration tests use disposable MySQL 8 and do not verify the TiDB production connection.
+**Demo:** [Feed Dearborn](https://feed-dearborn-demo-vzw2.onrender.com). Render must deploy the latest commit for new features to appear. Automated tests use disposable MySQL 8 and do not replace production browser verification.
 
 ## Local setup
 
@@ -88,6 +89,7 @@ The frontend calls `http://localhost:3000` by default. Configure `window.FOOD_AP
 | PUT | `/api/food_posts/:id/reserved` | Yes | Reserve someone else's post |
 | PUT | `/api/food_posts/:id/reserve` | Yes | Alternate reserve route |
 | GET | `/api/reservations` | Yes | List the logged-in recipient's bookings and pickup status |
+| GET | `/api/analytics` | Yes | Private donor/recipient statistics and top food types from SQL |
 | DELETE | `/api/reservations/:id` | Yes | Recipient cancels reservation before pickup |
 | PUT | `/api/food_posts/:id/picked-up` | Yes | Donor confirms collection of reserved food |
 | DELETE | `/api/food_posts/:id` | Yes | Donor removes an unreserved listing |
@@ -102,14 +104,7 @@ Run `npm run test:unit` for mocked API tests without MySQL. Run `npm run test:in
 
 ## Business and data opportunities
 
-Once the service is tested with real or consented demonstration records, SQL dashboards could summarize:
-
-- Number of food listings and successful reservations over time
-- Categories with high demand versus available donations
-- Reservation completion rate and frequently available food types
-- Pick-up windows and operational patterns
-
-These dashboards are **future extensions**, not completed claims in this repository.
+The authenticated dashboard now summarizes currently stored data from SQL queries: published/available/reserved/picked-up listings, listed/collected units, up to six most-listed food types, and the current user's reservations and pickups. Each user sees only their own activity. Deleted unreserved posts and cancelled reservations do not count toward current totals. Time-series trends, global community statistics, and pickup-window analytics are potential future extensions.
 
 ## Security notes
 

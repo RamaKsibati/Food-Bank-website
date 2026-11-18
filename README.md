@@ -11,7 +11,8 @@ A student full-stack project connecting donors with people seeking food. Users c
 - Account registration with bcrypt password hashing and login with short-lived JWTs
 - Authenticated users can create and view their own food posts
 - Public listings show available food **without publishing donors' contact details**
-- A logged-in recipient can reserve a post owned by someone else
+- A logged-in recipient can reserve a post owned by someone else, view their reservations, and cancel before pickup
+- Donors can remove unreserved listings and mark reserved listings as picked up
 - Transaction and row-level locking prevent two simultaneous reservations of the same post
 - Duplicate registrations, invalid requests, nonexistent listings, and conflicts return meaningful HTTP statuses
 - Automated API tests for registration, login, authorization, feed privacy, and reservation conflicts
@@ -39,7 +40,7 @@ MySQL
 | `food_posts` | `post_id` PK, `user_id` FK, food details, `reserved` | Donations and ownership |
 | `reservations` | `reservation_id` PK, unique `post_id` FK, `user_id` FK | Which account reserved which post |
 
-A unique `reservations.post_id` constraint prevents multiple reservations for the same listing. The reservation endpoint also locks a row with `SELECT ... FOR UPDATE` and updates/creates the reservation in a single transaction.
+A unique `reservations.post_id` constraint prevents multiple reservations for the same listing. The reservation and cancellation endpoints lock the food row with `SELECT ... FOR UPDATE` to keep booking state consistent. The pickup state is tracked in `food_posts.picked_up`; existing databases gain this column through a non-destructive migration when `npm run db:setup` runs.
 
 ## Free cloud demo (Render + TiDB Cloud Starter)
 
@@ -86,6 +87,10 @@ The frontend calls `http://localhost:3000` by default. Configure `window.FOOD_AP
 | GET | `/api/user_food_posts` | Yes | List your own posts with contact information |
 | PUT | `/api/food_posts/:id/reserved` | Yes | Reserve someone else's post |
 | PUT | `/api/food_posts/:id/reserve` | Yes | Alternate reserve route |
+| GET | `/api/reservations` | Yes | List the logged-in recipient's bookings and pickup status |
+| DELETE | `/api/reservations/:id` | Yes | Recipient cancels reservation before pickup |
+| PUT | `/api/food_posts/:id/picked-up` | Yes | Donor confirms collection of reserved food |
+| DELETE | `/api/food_posts/:id` | Yes | Donor removes an unreserved listing |
 
 Requests with tokens must include `Authorization: Bearer <token>`. Signup requires a valid email and a password of 8–128 characters. Food-post requests require positive integer quantity and valid text/pickup date fields.
 
@@ -130,6 +135,6 @@ README.md
 
 ## Known limitations
 
-The frontend is a demonstration, the pickup workflow is not complete, and a reservation does not automatically transmit pickup contact details. Existing installations with the old schema require a migration. Automated MySQL integration checks run on GitHub Actions; hosted TiDB compatibility and browser testing must still be verified. Real-browser end-to-end testing and production deployment verification remain outstanding.
+The frontend is a demonstration, the pickup workflow is not complete, and a reservation does not automatically transmit pickup contact details. A non-destructive schema update adds the pickup flag to existing installations when setup runs. Other incompatible legacy schemas still require a dedicated migration. Automated MySQL integration checks run on GitHub Actions; hosted TiDB compatibility and browser testing must still be verified. Real-browser end-to-end testing and production deployment verification remain outstanding.
 
 **Maintainer:** Rama Ksibati · Computer Information Science portfolio

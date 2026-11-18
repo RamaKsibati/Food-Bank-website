@@ -34,19 +34,30 @@ function authHeaders() {
   return token ? { Authorization: `Bearer ${token}` } : {};
 }
 
+function formatPickup(value) {
+  const date = new Date(value);
+  return Number.isNaN(date.getTime()) ? 'Date not available' : date.toLocaleString([], { dateStyle: 'medium', timeStyle: 'short' });
+}
+
 function renderPost(post, container, allowReserve = false) {
   const item = makeElement('article', undefined, 'food-post');
+  const badge = makeElement('span', post.reserved ? 'Reserved' : 'Available', post.reserved ? 'status status-reserved' : 'status');
   item.append(
+    badge,
     makeElement('h3', post.food_type),
     makeElement('p', `Quantity: ${post.quantity}`),
-    makeElement('p', `Pickup: ${new Date(post.pickup_time).toLocaleString()}`)
+    makeElement('p', `Pickup: ${formatPickup(post.pickup_time)}`)
   );
   // Contact details are only shown to the original owner on their dashboard.
   if (post.contact_info) item.append(makeElement('p', `Contact: ${post.contact_info}`));
   if (allowReserve && !post.reserved) {
-    const button = makeElement('button', 'Reserve');
+    const button = makeElement('button', 'Reserve food →');
     button.type = 'button';
-    button.addEventListener('click', () => reserveFood(post.post_id));
+    button.addEventListener('click', async () => {
+      button.disabled = true;
+      try { await reserveFood(post.post_id); }
+      finally { button.disabled = false; }
+    });
     item.append(button);
   }
   container.append(item);
@@ -57,11 +68,22 @@ async function loadFoodPosts() {
   if (!container || window.location.pathname.includes('dashboared.html')) return;
   try {
     const posts = await apiRequest('/api/food_posts');
-    container.replaceChildren();
-    posts.forEach(post => renderPost(post, container, true));
-    if (!posts.length) container.append(makeElement('p', 'No available listings right now.'));
+    const search = document.getElementById('food-search');
+    const clear = document.getElementById('clear-search');
+    function display() {
+      const query = (search ? search.value : '').trim().toLowerCase();
+      const matching = posts.filter(post => post.food_type.toLowerCase().includes(query));
+      container.replaceChildren();
+      matching.forEach(post => renderPost(post, container, true));
+      if (!matching.length) container.append(makeElement('div', query ? 'No food matches your search.' : 'No available listings right now.', 'empty-state'));
+    }
+    if (search) {
+      search.addEventListener('input', display);
+      if (clear) clear.addEventListener('click', () => { search.value = ''; display(); search.focus(); });
+    }
+    display();
   } catch (error) {
-    container.replaceChildren(makeElement('p', error.message));
+    container.replaceChildren(makeElement('div', error.message, 'empty-state'));
   }
 }
 
@@ -77,7 +99,6 @@ async function loadUserFoodPosts() {
     container.replaceChildren();
     posts.forEach(post => {
       renderPost(post, container);
-      if (post.reserved) container.append(makeElement('p', 'Reserved'));
     });
     if (!posts.length) container.append(makeElement('p', 'You have not posted food yet.'));
   } catch (error) {
@@ -107,8 +128,8 @@ async function loadReservations() {
       item.append(
         makeElement('h3', reservation.food_type),
         makeElement('p', `Quantity: ${reservation.quantity}`),
-        makeElement('p', `Pickup: ${new Date(reservation.pickup_time).toLocaleString()}`),
-        makeElement('p', `Reserved on: ${new Date(reservation.reserved_at).toLocaleString()}`),
+        makeElement('p', `Pickup: ${formatPickup(reservation.pickup_time)}`),
+        makeElement('p', `Reserved on: ${formatPickup(reservation.reserved_at)}`),
         makeElement('p', 'Status: Reserved')
       );
       container.append(item);
@@ -127,8 +148,7 @@ async function reserveFood(postId) {
     await apiRequest(`/api/food_posts/${encodeURIComponent(postId)}/reserved`, {
       method: 'PUT', headers: authHeaders()
     });
-    alert('Food reserved successfully.');
-    await loadFoodPosts();
+    window.location.href = 'reservation.html';
   } catch (error) {
     alert(error.message);
   }

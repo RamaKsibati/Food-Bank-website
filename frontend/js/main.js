@@ -1,8 +1,18 @@
 const API_BASE = (window.FOOD_API_BASE || ((window.location.hostname === 'localhost' && !['3000', ''].includes(window.location.port)) ? 'http://localhost:3000' : window.location.origin)).replace(/\/$/, '');
 
-function logout() {
+function logout(event) {
+  if (event) event.preventDefault();
   localStorage.removeItem('token');
   window.location.href = 'index.html';
+}
+
+function updateNavigation() {
+  const signedIn = Boolean(localStorage.getItem('token'));
+  document.querySelectorAll('[data-auth="signed-in"]').forEach(item => { item.hidden = !signedIn; });
+  document.querySelectorAll('[data-auth="signed-out"]').forEach(item => { item.hidden = signedIn; });
+  document.querySelectorAll('[data-action="logout"]').forEach(link => {
+    link.addEventListener('click', logout);
+  });
 }
 
 function makeElement(tag, content, className) {
@@ -70,6 +80,39 @@ async function loadUserFoodPosts() {
       if (post.reserved) container.append(makeElement('p', 'Reserved'));
     });
     if (!posts.length) container.append(makeElement('p', 'You have not posted food yet.'));
+  } catch (error) {
+    container.replaceChildren(makeElement('p', error.message));
+  }
+}
+
+async function loadReservations() {
+  const container = document.getElementById('reservation-list');
+  if (!container) return;
+  if (!localStorage.getItem('token')) {
+    container.replaceChildren(makeElement('p', 'Please sign in to view your reservations.'));
+    const link = makeElement('a', 'Sign in');
+    link.href = 'login.html';
+    container.append(link);
+    return;
+  }
+  try {
+    const reservations = await apiRequest('/api/reservations', { headers: authHeaders() });
+    container.replaceChildren();
+    if (!reservations.length) {
+      container.append(makeElement('p', "You haven't reserved any food yet."));
+      return;
+    }
+    reservations.forEach(reservation => {
+      const item = makeElement('article', undefined, 'food-post');
+      item.append(
+        makeElement('h3', reservation.food_type),
+        makeElement('p', `Quantity: ${reservation.quantity}`),
+        makeElement('p', `Pickup: ${new Date(reservation.pickup_time).toLocaleString()}`),
+        makeElement('p', `Reserved on: ${new Date(reservation.reserved_at).toLocaleString()}`),
+        makeElement('p', 'Status: Reserved')
+      );
+      container.append(item);
+    });
   } catch (error) {
     container.replaceChildren(makeElement('p', error.message));
   }
@@ -188,8 +231,10 @@ function viewDetails() {
 }
 
 document.addEventListener('DOMContentLoaded', () => {
+  updateNavigation();
   setupSignupForm();
   setupLoginForm();
+  loadReservations();
   setupFoodPostForm();
   if (window.location.pathname.includes('dashboared.html')) {
     loadUserFoodPosts();

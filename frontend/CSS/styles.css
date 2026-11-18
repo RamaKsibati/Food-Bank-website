@@ -104,3 +104,11 @@ footer{border-top:1px solid var(--border);background:#f0f3eb;padding:27px 0;colo
 /* Dashboard cards stay readable within the narrower right column. */
 .dashboard-grid #food-feed{grid-template-columns:1fr}
 .dashboard-grid .food-post{box-shadow:none;background:#fafcf8}
+
+/* Donation-management controls */
+.managed-post{min-width:0;display:flex;flex-direction:column}
+.managed-post .food-post{flex:1}
+.manage-actions{display:flex;gap:8px;flex-wrap:wrap;padding:12px 0 22px}
+.manage-actions button,.food-post .danger-button{border-radius:11px;padding:11px 15px;font-size:13px;font-weight:800;background:#fce8e5;color:#8c322a;border:1px solid #f4d0ca}
+.manage-actions button:not(.danger-button){background:#e3f1de;color:#24553a;border:1px solid #cde5c9}
+.manage-actions button:hover,.food-post .danger-button:hover{filter:brightness(.96)}

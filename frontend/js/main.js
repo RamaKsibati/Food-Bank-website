@@ -88,6 +88,58 @@ async function loadFoodPosts() {
   }
 }
 
+// Populate the dashboard only with the current authenticated user's SQL aggregates.
+async function loadAnalytics() {
+  const feedback = document.getElementById('analytics-feedback');
+  if (!feedback) return;
+  if (!localStorage.getItem('token')) {
+    feedback.textContent = 'Sign in to view your activity.';
+    return;
+  }
+  feedback.textContent = 'Updating your insights...';
+  try {
+    const data = await apiRequest('/api/analytics', { headers: authHeaders() });
+    const values = {
+      'metric-total': data.donor.totalPosts,
+      'metric-available': data.donor.available,
+      'metric-reserved': data.donor.reserved,
+      'metric-picked': data.donor.pickedUp,
+      'metric-units-listed': data.donor.unitsListed,
+      'metric-units-collected': data.donor.unitsCollected,
+      'metric-my-reservations': data.recipient.reservations,
+      'metric-my-pickups': data.recipient.pickedUp
+    };
+    Object.entries(values).forEach(([id, value]) => {
+      const element = document.getElementById(id);
+      if (element) element.textContent = Number(value).toLocaleString();
+    });
+
+    const categories = document.getElementById('analytics-categories');
+    if (categories) {
+      categories.replaceChildren();
+      if (!data.categories.length) {
+        categories.append(makeElement('p', 'Post your first food listing to see a breakdown here.', 'muted'));
+      } else {
+        const max = Math.max(...data.categories.map(category => Number(category.count)), 1);
+        data.categories.forEach(category => {
+          const item = makeElement('div', undefined, 'category-item');
+          const heading = makeElement('div', undefined, 'category-label');
+          heading.append(makeElement('span', category.name), makeElement('strong', Number(category.count).toLocaleString()));
+          const track = makeElement('div', undefined, 'category-track');
+          const bar = makeElement('div', undefined, 'category-bar');
+          bar.style.width = `${Math.max(0, Math.min(100, Number(category.count) / max * 100))}%`;
+          track.append(bar);
+          item.append(heading, track);
+          categories.append(item);
+        });
+      }
+    }
+    feedback.textContent = 'Updated from your account activity.';
+  } catch (error) {
+    feedback.textContent = `Unable to load insights: ${error.message}`;
+  }
+}
+
 async function loadUserFoodPosts() {
   const container = document.getElementById('food-feed');
   if (!container) return;
@@ -177,6 +229,7 @@ async function updateDonation(postId, action, button) {
       method: pickup ? 'PUT' : 'DELETE', headers: authHeaders()
     });
     await loadUserFoodPosts();
+    await loadAnalytics();
   } catch (error) {
     alert(error.message);
     button.disabled = false;
@@ -296,6 +349,9 @@ function viewDetails() {
 
 document.addEventListener('DOMContentLoaded', () => {
   updateNavigation();
+  const refreshAnalytics = document.getElementById('refresh-analytics');
+  if (refreshAnalytics) refreshAnalytics.addEventListener('click', loadAnalytics);
+  loadAnalytics();
   setupSignupForm();
   setupLoginForm();
   loadReservations();
